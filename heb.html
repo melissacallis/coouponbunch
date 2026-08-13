@@ -97,7 +97,21 @@
     gap: 8px;
   }
   .featured .card {
-    border-left: 4px solid var(--accent);
+    border-left: 5px solid var(--accent);
+    position: relative;
+  }
+  .card .brand-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 2px;
+  }
+  .card .brand-chips span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 999px;
   }
   .card .value {
     font-weight: 700;
@@ -155,6 +169,38 @@
     font-weight: 600;
     font-size: 0.8rem;
     white-space: nowrap;
+  }
+
+  /* Brand match highlighting: brands mentioned in the featured basket coupons
+     get called out wherever they reappear in the general coupon list, using
+     the same color as the featured coupon card they belong to. */
+  .brand-hit {
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    color: white;
+    animation: blink-brand 1.1s steps(1, end) infinite;
+  }
+  @keyframes blink-brand {
+    0%, 49% { filter: brightness(1); }
+    50%, 100% { filter: brightness(1.35); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  }
+  .row.has-brand-hit {
+    border-color: #ffd84d;
+  }
+  .brand-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 0 18px;
+  }
+  .brand-legend span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: white;
+    padding: 3px 9px;
+    border-radius: 999px;
+    animation: blink-brand 1.1s steps(1, end) infinite;
   }
 
   .empty-state {
@@ -220,6 +266,10 @@
 
   <section>
     <h2 class="section-title">All other coupons</h2>
+    <p class="sub" style="margin-top:-6px;">
+      Brands also mentioned in a featured basket coupon above are <span class="brand-hit" style="animation:none;">highlighted</span> below — these are your best stacking candidates.
+    </p>
+    <div class="brand-legend" id="brand-legend"></div>
     <div class="general-list" id="general-list"></div>
   </section>
 
@@ -229,24 +279,52 @@
 <script>
 let DATA = { featured_stackable_candidates: [], general_coupons: [] };
 
-function cardHTML(c) {
+// Bootstrap's standard palette, cycled per featured coupon so each basket
+// coupon gets its own consistent color across its card, its brand chips, and
+// every matching brand highlight in the general list below.
+const BOOTSTRAP_COLORS = [
+  '#0d6efd', // primary
+  '#198754', // success
+  '#dc3545', // danger
+  '#fd7e14', // orange
+  '#6f42c1', // purple
+  '#d63384', // pink
+  '#20c997', // teal
+  '#0dcaf0', // info
+  '#6610f2', // indigo
+  '#6c757d', // secondary
+];
+
+function colorForIndex(i) {
+  return BOOTSTRAP_COLORS[i % BOOTSTRAP_COLORS.length];
+}
+
+function cardHTML(c, color) {
+  const chips = (c.brands || [])
+    .map(b => `<span style="background:${color}">${escapeHTML(b)}</span>`)
+    .join('');
   return `
-    <div class="card">
-      <div class="value">${escapeHTML(c.value || '')}</div>
+    <div class="card" style="border-left-color:${color}">
+      <div class="value" style="color:${color}">${escapeHTML(c.value || '')}</div>
       <div class="desc">${escapeHTML(c.description || '')}</div>
       <div class="meta">
         <span>${c.expires ? 'Expires ' + escapeHTML(c.expires) : ''}</span>
         <span>${escapeHTML(c.limit || '')}</span>
       </div>
-      <a class="clip" href="${c.url}" target="_blank" rel="noopener">View / Clip →</a>
+      ${chips ? `<div class="brand-chips">${chips}</div>` : ''}
+      <a class="clip" href="${c.url}" target="_blank" rel="noopener" style="background:${color}">View / Clip →</a>
     </div>`;
 }
 
-function rowHTML(c) {
+function rowHTML(c, brandColorMap) {
+  const highlighted = highlightBrands(c.description, brandColorMap);
+  const hasHit = Object.keys(brandColorMap).some(b =>
+    new RegExp(escapeRegExp(b), 'i').test(c.description)
+  );
   return `
-    <div class="row">
+    <div class="row${hasHit ? ' has-brand-hit' : ''}">
       <span class="value">${escapeHTML(c.value || '')}</span>
-      <span class="desc">${escapeHTML(c.description || '')}</span>
+      <span class="desc">${highlighted}</span>
       <span class="meta">${c.expires ? 'Exp ' + escapeHTML(c.expires) : ''} · ${escapeHTML(c.limit || '')}</span>
       <a class="clip" href="${c.url}" target="_blank" rel="noopener">Clip →</a>
     </div>`;
@@ -256,6 +334,60 @@ function escapeHTML(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Pull the brand/category names out of a single basket coupon's description,
+// e.g. "...when you buy $25 of Dove, AXE, Degree, or Schmidt's items" ->
+// ["Dove", "AXE", "Degree", "Schmidt's"]
+function extractBrandsFromDescription(description) {
+  const segmentRe = /of\s+(.+?)\s+(?:items?|product|products)\b/i;
+  const m = description.match(segmentRe);
+  if (!m) return [];
+  return m[1]
+    .replace(/\(.*?\)/g, '')          // drop parentheticals like "(excludes ...)"
+    .replace(/\bor\b/gi, ',')
+    .replace(/\band\b/gi, ',')
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s.length > 1 && s.length < 30);
+}
+
+// Build { brandName: colorHex } across all featured coupons, and attach
+// each featured coupon's own brand list + color for its card/chips.
+function buildBrandColorMap(featuredList) {
+  const brandColorMap = {};
+  featuredList.forEach((c, i) => {
+    const color = colorForIndex(i);
+    c.brands = extractBrandsFromDescription(c.description);
+    c.color = color;
+    c.brands.forEach(brand => {
+      if (!(brand in brandColorMap)) {
+        brandColorMap[brand] = color;
+      }
+    });
+  });
+  // Longest names first so "Dove Men+Care" matches before plain "Dove"
+  const ordered = {};
+  Object.keys(brandColorMap)
+    .sort((a, b) => b.length - a.length)
+    .forEach(k => { ordered[k] = brandColorMap[k]; });
+  return ordered;
+}
+
+function highlightBrands(text, brandColorMap) {
+  let result = escapeHTML(text);
+  Object.keys(brandColorMap).forEach(brand => {
+    const color = brandColorMap[brand];
+    const re = new RegExp(`(${escapeRegExp(escapeHTML(brand))})`, 'i');
+    if (re.test(result)) {
+      result = result.replace(re, `<span class="brand-hit" style="background:${color}">$1</span>`);
+    }
+  });
+  return result;
 }
 
 function matches(c, query) {
@@ -281,12 +413,21 @@ function render() {
     ? DATA.general_coupons.filter(c => matches(c, query))
     : [];
 
+  const brandColorMap = buildBrandColorMap(DATA.featured_stackable_candidates || []);
+
+  const legend = document.getElementById('brand-legend');
+  legend.innerHTML = (showGeneral && Object.keys(brandColorMap).length)
+    ? Object.entries(brandColorMap)
+        .map(([b, color]) => `<span style="background:${color}">${escapeHTML(b)}</span>`)
+        .join('')
+    : '';
+
   featuredGrid.innerHTML = featured.length
-    ? featured.map(cardHTML).join('')
+    ? featured.map(c => cardHTML(c, c.color || colorForIndex(0))).join('')
     : `<div class="empty-state">No featured basket coupons match.</div>`;
 
   generalList.innerHTML = general.length
-    ? general.map(rowHTML).join('')
+    ? general.map(c => rowHTML(c, brandColorMap)).join('')
     : `<div class="empty-state">No coupons match.</div>`;
 
   document.querySelector('section.featured').style.display = showFeatured ? '' : 'none';
