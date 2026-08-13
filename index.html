@@ -3,349 +3,534 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CouponBunch 🐰</title>
+<title>H-E-B Coupons</title>
 <style>
   :root {
-    --pink: #ff8fb1;
-    --pink-dark: #ff5c8a;
-    --cream: #fff8f0;
-    --yellow: #ffe17d;
-    --mint: #a3e8d0;
-    --lilac: #d6c8ff;
-    --sky: #bfe3ff;
-    --text: #5b4a4a;
+    --heb-red: #d5121e;
+    --heb-dark: #1b1b1b;
+    --bg: #f7f6f3;
+    --card-bg: #ffffff;
+    --border: #e3e1db;
+    --muted: #6b6b6b;
+    --accent: #2e7d32;
   }
   * { box-sizing: border-box; }
-  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap');
   body {
     margin: 0;
-    min-height: 100vh;
-    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    background:
-      radial-gradient(circle at 15% 15%, #ffe6f0 0%, transparent 40%),
-      radial-gradient(circle at 85% 20%, #e0f3ff 0%, transparent 40%),
-      radial-gradient(circle at 50% 90%, #fff3d6 0%, transparent 45%),
-      linear-gradient(180deg, #fff5f8 0%, var(--cream) 55%, #fff0e8 100%);
-    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--heb-dark);
+  }
+  header {
+    background: var(--heb-red);
+    color: white;
+    padding: 20px 24px;
+  }
+  header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  header p { margin: 0; font-size: 0.85rem; opacity: 0.9; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: 12px 0;
+    z-index: 5;
+  }
+  .search-bar input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  .search-bar select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+  }
+
+  section.stackable-section {
+    margin-bottom: 36px;
+  }
+  section.stackable-section h2 {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  section.stackable-section .sub {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 14px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    overflow-x: hidden;
+    gap: 8px;
+  }
+  .featured .card {
+    border-left: 5px solid var(--accent);
     position: relative;
   }
-
-  /* floating background coupons */
-  .floaty {
-    position: fixed;
-    font-size: 1.8rem;
-    opacity: 0.4;
-    animation: drift 14s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 0;
-    filter: drop-shadow(0 2px 3px rgba(255,140,180,0.25));
-  }
-  .floaty:nth-child(1) { top: 8%;  left: 6%;  animation-duration: 12s; }
-  .floaty:nth-child(2) { top: 20%; right: 8%; animation-duration: 16s; animation-delay: -3s; }
-  .floaty:nth-child(3) { bottom: 18%; left: 10%; animation-duration: 15s; animation-delay: -6s; }
-  .floaty:nth-child(4) { bottom: 10%; right: 12%; animation-duration: 13s; animation-delay: -2s; }
-  .floaty:nth-child(5) { top: 45%; left: 3%; animation-duration: 18s; animation-delay: -8s; }
-  .floaty:nth-child(6) { top: 55%; right: 4%; animation-duration: 17s; animation-delay: -5s; }
-  .floaty.sparkle { font-size: 1.1rem; animation-duration: 5s; opacity: 0.7; }
-  .floaty.sparkle:nth-child(7) { top: 12%; left: 30%; animation-delay: -1s; }
-  .floaty.sparkle:nth-child(8) { top: 30%; right: 25%; animation-delay: -2.5s; }
-  .floaty.sparkle:nth-child(9) { bottom: 30%; left: 22%; animation-delay: -1.8s; }
-
-  @keyframes drift {
-    0%, 100% { transform: translateY(0px) rotate(-4deg); }
-    50% { transform: translateY(-24px) rotate(6deg); }
-  }
-  @keyframes twinkle {
-    0%, 100% { opacity: 0.2; transform: scale(0.8); }
-    50% { opacity: 1; transform: scale(1.15); }
-  }
-  .floaty.sparkle { animation-name: twinkle; }
-
-  main {
-    position: relative;
-    z-index: 1;
-    max-width: 640px;
+  .card .coupon-img {
     width: 100%;
-    padding: 56px 24px 40px;
+    height: 120px;
+    object-fit: contain;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .card .brand-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 2px;
+  }
+  .card .brand-chips span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .card .value {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--heb-red);
+  }
+  .card .desc {
+    font-size: 0.88rem;
+    line-height: 1.35;
+    flex: 1;
+  }
+  .card .meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  .card a.clip {
+    margin-top: 4px;
     text-align: center;
-  }
-
-  .bunny-wrap {
-    display: inline-block;
-    animation: bounce 2.4s ease-in-out infinite;
-    position: relative;
-  }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0) scaleY(1); }
-    45% { transform: translateY(-14px) scaleY(1.02); }
-    55% { transform: translateY(-14px) scaleY(0.98); }
-    75% { transform: translateY(0) scaleY(0.97); }
-  }
-
-  .bunny-svg { width: 190px; height: 190px; }
-  .twinkle-eye {
-    animation: blink 4.5s ease-in-out infinite;
-    transform-origin: center;
-  }
-  @keyframes blink {
-    0%, 92%, 100% { transform: scaleY(1); }
-    95% { transform: scaleY(0.1); }
-  }
-  .hair-ribbon {
-    animation: ribbon-sway 2.4s ease-in-out infinite;
-    transform-origin: center;
-  }
-  @keyframes ribbon-sway {
-    0%, 100% { transform: rotate(-4deg); }
-    50% { transform: rotate(4deg); }
-  }
-  .coupon-hand {
-    animation: coupon-bob 2.4s ease-in-out infinite;
-    transform-origin: bottom center;
-  }
-  @keyframes coupon-bob {
-    0%, 100% { transform: translateY(0) rotate(-6deg); }
-    50% { transform: translateY(-6px) rotate(4deg); }
-  }
-  .sparkle-star {
-    animation: twinkle 1.8s ease-in-out infinite;
-    transform-origin: center;
-  }
-
-  h1.brand {
-    font-family: 'Baloo 2', 'Nunito', sans-serif;
-    font-size: 2.8rem;
-    margin: 10px 0 0;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    -webkit-text-stroke: 2px #ffffff;
-    paint-order: stroke fill;
-  }
-  h1.brand .coupon { color: var(--pink-dark); }
-  h1.brand .bunch { color: #6fd6b8; }
-
-  .tagline {
-    margin: 6px 0 8px;
-    color: #8a7373;
-    font-size: 1.05rem;
+    background: var(--heb-red);
+    color: white;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.85rem;
     font-weight: 600;
   }
 
-  .cute-ribbon-row {
+  .general-list {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     gap: 8px;
-    margin-bottom: 32px;
-    flex-wrap: wrap;
   }
-  .cute-ribbon-row span {
-    background: white;
-    border: 2px solid var(--pink);
-    color: var(--pink-dark);
+  .general-list .row {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 0.85rem;
+  }
+  .general-list .row .value {
+    min-width: 90px;
+    font-weight: 700;
+    color: var(--heb-red);
+  }
+  .general-list .row .desc { flex: 1; }
+  .general-list .row .meta { color: var(--muted); white-space: nowrap; font-size: 0.75rem; }
+  .general-list .row a.clip {
+    color: var(--heb-red);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  /* Brand match highlighting: brands mentioned in the featured basket coupons
+     get called out wherever they reappear in the general coupon list, using
+     the same color as the featured coupon card they belong to. */
+  .brand-hit {
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    color: white;
+    animation: blink-brand 1.1s steps(1, end) infinite;
+  }
+  @keyframes blink-brand {
+    0%, 49% { filter: brightness(1); }
+    50%, 100% { filter: brightness(1.35); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  }
+  .row.has-brand-hit {
+    border-color: #ffd84d;
+  }
+  .brand-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 0 18px;
+  }
+  .brand-legend span {
     font-size: 0.72rem;
     font-weight: 700;
-    padding: 4px 12px;
+    color: white;
+    padding: 3px 9px;
     border-radius: 999px;
+    animation: blink-brand 1.1s steps(1, end) infinite;
   }
 
-  .site-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .site-card {
-    background: white;
-    border-radius: 24px;
-    padding: 24px 22px;
-    text-decoration: none;
-    color: var(--text);
-    box-shadow: 0 6px 0 rgba(0,0,0,0.06), 0 10px 24px rgba(224,80,122,0.08);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    text-align: left;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    border: 3px solid #ffe0ea;
-  }
-  .site-card:hover {
-    transform: translateY(-4px) rotate(-0.5deg);
-    box-shadow: 0 10px 0 rgba(0,0,0,0.07), 0 16px 30px rgba(224,80,122,0.14);
-    border-color: var(--yellow);
-  }
-  .site-card .icon {
-    font-size: 2.2rem;
-    flex-shrink: 0;
-    background: linear-gradient(135deg, var(--yellow), #ffcf5c);
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.08);
-  }
-  .site-card .info h2 {
-    margin: 0 0 4px;
-    font-size: 1.15rem;
-    font-family: 'Baloo 2', sans-serif;
-    font-weight: 700;
-  }
-  .site-card .info p {
-    margin: 0;
-    font-size: 0.88rem;
-    color: #7a6a6a;
-  }
-  .site-card .arrow {
-    margin-left: auto;
-    font-size: 1.3rem;
-    color: var(--pink);
-    transition: transform 0.15s ease;
-  }
-  .site-card:hover .arrow { transform: translateX(4px); }
-
-  .coming-soon {
-    opacity: 0.55;
-    pointer-events: none;
-  }
-  .coming-soon .badge {
-    background: var(--mint);
-    color: #1a4d43;
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 999px;
-    margin-left: 8px;
-    vertical-align: middle;
-  }
-
-  footer {
-    position: relative;
-    z-index: 1;
-    margin-top: auto;
-    padding: 24px;
-    font-size: 0.78rem;
-    color: #9a8a8a;
+  .empty-state {
+    color: var(--muted);
+    font-size: 0.9rem;
+    padding: 20px;
     text-align: center;
   }
-  footer a { color: var(--pink-dark); }
+
+  footer.updated {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 40px;
+  }
+
+  .stale-banner {
+    background: #fff4e5;
+    border: 1px solid #f0c36d;
+    color: #7a5300;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  h2.section-title {
+    font-size: 1.05rem;
+    margin: 0 0 12px;
+  }
 </style>
 </head>
 <body>
 
-<span class="floaty">🎟️</span>
-<span class="floaty">🍡</span>
-<span class="floaty">💸</span>
-<span class="floaty">🏷️</span>
-<span class="floaty">🎟️</span>
-<span class="floaty">🧸</span>
-<span class="floaty sparkle">✨</span>
-<span class="floaty sparkle">⭐</span>
-<span class="floaty sparkle">✨</span>
+<header>
+  <h1>H-E-B Weekly Coupons</h1>
+  <p id="header-sub">Auto-updated every Sunday from heb.com</p>
+</header>
 
 <main>
-  <div class="bunny-wrap">
-    <svg class="bunny-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-      <!-- sparkles -->
-      <g class="sparkle-star" style="animation-delay:0s">
-        <path d="M28 40 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3 z" fill="#ffe17d"/>
-      </g>
-      <g class="sparkle-star" style="animation-delay:0.6s">
-        <path d="M195 55 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5 z" fill="#ff8fb1"/>
-      </g>
-      <g class="sparkle-star" style="animation-delay:1.1s">
-        <path d="M188 150 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 z" fill="#a3e8d0"/>
-      </g>
+  <div class="stale-banner" id="stale-banner"></div>
 
-      <!-- twin tail hair back -->
-      <path d="M55 95 Q30 110 38 150 Q42 168 62 165 Q50 140 58 110 Z" fill="#c9a3ff"/>
-      <path d="M165 95 Q190 110 182 150 Q178 168 158 165 Q170 140 162 110 Z" fill="#c9a3ff"/>
-
-      <!-- body / dress -->
-      <path d="M78 150 Q110 138 142 150 L150 195 Q110 208 70 195 Z" fill="#ff8fb1"/>
-      <path d="M78 150 Q110 138 142 150 L146 165 Q110 178 74 165 Z" fill="#ffa9c4"/>
-
-      <!-- coupon-bunching arm -->
-      <g class="coupon-hand">
-        <ellipse cx="152" cy="150" rx="10" ry="16" fill="#ffe0c2" transform="rotate(25 152 150)"/>
-        <rect x="150" y="112" width="26" height="18" rx="4" fill="#fff" stroke="#ff8fb1" stroke-width="2.5" transform="rotate(-12 163 121)"/>
-        <rect x="158" y="122" width="26" height="18" rx="4" fill="#fffbe8" stroke="#ffd166" stroke-width="2.5" transform="rotate(8 171 131)"/>
-        <rect x="150" y="130" width="24" height="17" rx="4" fill="#e8f7ff" stroke="#8fc9ff" stroke-width="2.5" transform="rotate(-6 162 138)"/>
-      </g>
-      <ellipse cx="72" cy="165" rx="9" ry="14" fill="#ffe0c2" transform="rotate(-15 72 165)"/>
-
-      <!-- head -->
-      <circle cx="110" cy="98" r="52" fill="#ffe9d6"/>
-
-      <!-- hair front/bangs -->
-      <path d="M60 88 Q58 50 110 44 Q162 50 160 88 Q150 62 110 60 Q70 62 60 88 Z" fill="#d6b8ff"/>
-      <path d="M64 72 Q80 58 92 68 Q78 66 70 82 Z" fill="#d6b8ff"/>
-      <path d="M156 72 Q140 58 128 68 Q142 66 150 82 Z" fill="#d6b8ff"/>
-
-      <!-- bunny ears (headband style) -->
-      <ellipse cx="78" cy="42" rx="11" ry="34" fill="#fff" stroke="#ff8fb1" stroke-width="3.5"/>
-      <ellipse cx="78" cy="46" rx="5.5" ry="22" fill="#ffcfe0"/>
-      <ellipse cx="142" cy="42" rx="11" ry="34" fill="#fff" stroke="#ff8fb1" stroke-width="3.5"/>
-      <ellipse cx="142" cy="46" rx="5.5" ry="22" fill="#ffcfe0"/>
-
-      <!-- ribbon -->
-      <g class="hair-ribbon">
-        <path d="M96 58 l-14 -8 2 9 -8 3 12 6 z" fill="#ff5c8a"/>
-        <path d="M124 58 l14 -8 -2 9 8 3 -12 6 z" fill="#ff5c8a"/>
-        <circle cx="110" cy="60" r="5" fill="#ff5c8a"/>
-      </g>
-
-      <!-- face -->
-      <g class="twinkle-eye">
-        <ellipse cx="92" cy="102" rx="6" ry="8" fill="#4a3a3a"/>
-        <circle cx="94" cy="99" r="2" fill="#fff"/>
-      </g>
-      <g class="twinkle-eye" style="animation-delay:0.15s">
-        <ellipse cx="128" cy="102" rx="6" ry="8" fill="#4a3a3a"/>
-        <circle cx="130" cy="99" r="2" fill="#fff"/>
-      </g>
-      <ellipse cx="80" cy="112" rx="6" ry="4" fill="#ffb3c6" opacity="0.8"/>
-      <ellipse cx="140" cy="112" rx="6" ry="4" fill="#ffb3c6" opacity="0.8"/>
-      <path d="M104 118 Q110 124 116 118" stroke="#a5766b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    </svg>
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Search coupons (brand, product, category)...">
+    <select id="filter-select">
+      <option value="all">All coupons</option>
+      <option value="featured">Featured (basket) only</option>
+      <option value="general">General only</option>
+    </select>
   </div>
 
-  <h1 class="brand"><span class="coupon">Coupon</span><span class="bunch">Bunch</span> 🎀</h1>
-  <p class="tagline">Hop in~ fresh coupons gathered weekly, ready to stack! ✨</p>
-  <div class="cute-ribbon-row">
-    <span>🎀 kawaii deals</span>
-    <span>🐰 updated sundays</span>
-    <span>💌 stack &amp; save</span>
-  </div>
+  <section class="stackable-section featured">
+    <h2>💰 Featured basket coupons <span class="badge">possibly stackable</span></h2>
+    <p class="sub">
+      These are "$X off your basket when you buy $Y of &lt;brand/category&gt;" coupons.
+      Because they apply to a basket total rather than one specific product, they may combine
+      with a product-specific coupon on the same qualifying item. Always verify at checkout —
+      H-E-B's own stacking rules aren't published per-coupon.
+    </p>
+    <div class="featured-grid" id="featured-grid"></div>
+  </section>
 
-  <div class="site-grid">
-    <a class="site-card" href="heb.html">
-      <div class="icon">🛒</div>
-      <div class="info">
-        <h2>H-E-B Coupons</h2>
-        <p>Featured stackable basket deals up top, full searchable list below. Auto-updates every Sunday.</p>
-      </div>
-      <div class="arrow">→</div>
-    </a>
+  <section>
+    <h2 class="section-title">All other coupons</h2>
+    <p class="sub" style="margin-top:-6px;">
+      Brands also mentioned in a featured basket coupon above are highlighted below — these are your best stacking candidates. Matching is on brand/product-line names only, not generic words.
+    </p>
+    <div class="brand-legend" id="brand-legend"></div>
+    <div class="general-list" id="general-list"></div>
+  </section>
 
-    <div class="site-card coming-soon">
-      <div class="icon">🎁</div>
-      <div class="info">
-        <h2>More stores<span class="badge">coming soon</span></h2>
-        <p>Add another store's coupon page here the same way.</p>
-      </div>
-      <div class="arrow">→</div>
-    </div>
-  </div>
+  <footer class="updated" id="updated-footer"></footer>
 </main>
 
-<footer>
-  🐰 CouponBunch · coupons scraped weekly via GitHub Actions · <a href="https://github.com/melissacallis/excel_to_github" target="_blank" rel="noopener">source on GitHub</a>
-</footer>
+<script>
+let DATA = { featured_stackable_candidates: [], general_coupons: [] };
+
+// Bootstrap's standard palette, cycled per featured coupon so each basket
+// coupon gets its own consistent color across its card, its brand chips, and
+// every matching brand highlight in the general list below.
+const BOOTSTRAP_COLORS = [
+  '#0d6efd', // primary
+  '#198754', // success
+  '#dc3545', // danger
+  '#fd7e14', // orange
+  '#6f42c1', // purple
+  '#d63384', // pink
+  '#20c997', // teal
+  '#0dcaf0', // info
+  '#6610f2', // indigo
+  '#6c757d', // secondary
+];
+
+function colorForIndex(i) {
+  return BOOTSTRAP_COLORS[i % BOOTSTRAP_COLORS.length];
+}
+
+function couponImageUrl(id) {
+  const padded = String(id).padStart(11, '0');
+  return `https://images.heb.com/is/image/HEBGrocery/cpn-large/coupon-${padded}.jpg`;
+}
+
+function cardHTML(c, color) {
+  const chips = (c.brands || [])
+    .map(b => `<span style="background:${color}">${escapeHTML(b)}</span>`)
+    .join('');
+  return `
+    <div class="card" style="border-left-color:${color}">
+      <img class="coupon-img" src="${couponImageUrl(c.id)}" alt="${escapeHTML(c.description || '')}" loading="lazy" onerror="this.style.display='none'">
+      <div class="value" style="color:${color}">${escapeHTML(c.value || '')}</div>
+      <div class="desc">${escapeHTML(c.description || '')}</div>
+      <div class="meta">
+        <span>${c.expires ? 'Expires ' + escapeHTML(c.expires) : ''}</span>
+        <span>${escapeHTML(c.limit || '')}</span>
+      </div>
+      ${chips ? `<div class="brand-chips">${chips}</div>` : ''}
+      <a class="clip" href="${c.url}" target="_blank" rel="noopener" style="background:${color}">View / Clip →</a>
+    </div>`;
+}
+
+function rowHTML(c, brandColorMap) {
+  const highlighted = highlightBrands(c.description, brandColorMap);
+  const hasHit = Object.keys(brandColorMap).some(b =>
+    new RegExp(escapeRegExp(b), 'i').test(c.description)
+  );
+  return `
+    <div class="row${hasHit ? ' has-brand-hit' : ''}">
+      <span class="value">${escapeHTML(c.value || '')}</span>
+      <span class="desc">${highlighted}</span>
+      <span class="meta">${c.expires ? 'Exp ' + escapeHTML(c.expires) : ''} · ${escapeHTML(c.limit || '')}</span>
+      <a class="clip" href="${c.url}" target="_blank" rel="noopener">Clip →</a>
+    </div>`;
+}
+
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const GENERIC_SEGMENT_WORDS = new Set([
+  // Whole segments consisting only of generic product-category words (no
+  // actual brand name) get dropped from matching entirely, so they can't
+  // light up unrelated coupons just because both happen to say "drink" or
+  // "food". Only real brand/line names should ever match.
+  'drink', 'drinks', 'food', 'foods', 'juice', 'juices', 'water', 'waters',
+  'snack', 'snacks', 'shake', 'shakes', 'powder', 'powders', 'bar', 'bars',
+  'wipe', 'wipes', 'gummy', 'gummies', 'supplement', 'supplements',
+  'product', 'products', 'item', 'items', 'care', 'wash', 'soap',
+  'lotion', 'cream', 'spray', 'gel', 'liquid', 'meal', 'meals',
+  'deodorant', 'shampoo', 'conditioner', 'cleansing', 'personal',
+  'assorted', 'varieties', 'variety', 'hair', 'face', 'body', 'skin',
+  'pouch', 'pouches', 'cup', 'cups', 'tube', 'tubes', 'bowl', 'bowls',
+  'jar', 'jars', 'bag', 'bags', 'box', 'boxes', 'can', 'cans', 'bottle',
+  'bottles', 'single', 'singles', 'multipack', 'multipacks',
+]);
+
+// Some category qualifiers are two-plus words and won't be caught by the
+// all-words-generic check above (e.g. "Hair Care" — "hair" alone might
+// describe a real brand elsewhere). Block these exact phrases outright.
+const GENERIC_SEGMENT_PHRASES = new Set([
+  'hair care', 'face care', 'body care', 'skin care', 'personal cleansing',
+  'hand soap', 'body wash', 'baby wash', 'body lotion', 'hair accessory',
+]);
+
+// Pull the brand/category names out of a single basket coupon's description,
+// e.g. "...when you buy $25 of Dove, AXE, Degree, or Schmidt's items" ->
+// ["Dove", "AXE", "Degree", "Schmidt's"]. Each comma/or-separated segment is
+// kept whole and used as-is for matching — no sub-word splitting — so a
+// generic word inside a longer brand phrase (like "Drink" in "SlimFast Ready
+// to Drink Shakes") can never match on its own elsewhere. A segment is
+// dropped if it's nothing but a generic category/product-type word or
+// phrase with no real brand name in it (e.g. "Hair Care", "Deodorant",
+// "assorted varieties").
+function extractBrandsFromDescription(description) {
+  const segmentRe = /buy\s+\$\d+(?:\.\d{2})?\s+of\s+(.+?)(?:\s+items?\b|\s+products?\b|\s*\(|$)/i;
+  const m = description.match(segmentRe);
+  if (!m) return [];
+  return m[1]
+    .replace(/\bor\b/gi, ',')
+    .replace(/\band\b/gi, ',')
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s.length > 1 && s.length < 40)
+    .filter(s => !/^[\d.,\-\/\s]+(oz|pk|pks|ct|lb|fl)\.?$/i.test(s))
+    .filter(s => !GENERIC_SEGMENT_PHRASES.has(s.toLowerCase()))
+    .filter(s => {
+      const words = s.toLowerCase().split(/\s+/);
+      return !words.every(w => GENERIC_SEGMENT_WORDS.has(w));
+    });
+}
+
+// Build { brandSegment: colorHex } across all featured coupons, matching
+// only on the whole clean brand/product-line segments (never individual
+// generic words), and attach each featured coupon's own segments + color
+// for its card chips.
+function buildBrandColorMap(featuredList) {
+  const brandColorMap = {};
+  featuredList.forEach((c, i) => {
+    const color = colorForIndex(i);
+    const segments = extractBrandsFromDescription(c.description);
+    c.brands = segments;       // shown as chips on the card
+    c.color = color;
+    segments.forEach(term => {
+      if (!(term in brandColorMap)) {
+        brandColorMap[term] = color;
+      }
+    });
+  });
+  // Longest terms first so "Dove Men+Care" matches before plain "Dove"
+  const ordered = {};
+  Object.keys(brandColorMap)
+    .sort((a, b) => b.length - a.length)
+    .forEach(k => { ordered[k] = brandColorMap[k]; });
+  return ordered;
+}
+
+function highlightBrands(text, brandColorMap) {
+  let result = escapeHTML(text);
+  Object.keys(brandColorMap).forEach(brand => {
+    const color = brandColorMap[brand];
+    const re = new RegExp(`(${escapeRegExp(escapeHTML(brand))})`, 'i');
+    if (re.test(result)) {
+      result = result.replace(re, `<span class="brand-hit" style="background:${color}">$1</span>`);
+    }
+  });
+  return result;
+}
+
+function matches(c, query) {
+  if (!query) return true;
+  const haystack = (c.value + ' ' + c.description).toLowerCase();
+  return haystack.includes(query.toLowerCase());
+}
+
+function render() {
+  const query = document.getElementById('search').value.trim();
+  const filter = document.getElementById('filter-select').value;
+
+  const featuredGrid = document.getElementById('featured-grid');
+  const generalList = document.getElementById('general-list');
+
+  const showFeatured = filter === 'all' || filter === 'featured';
+  const showGeneral = filter === 'all' || filter === 'general';
+
+  const featured = showFeatured
+    ? DATA.featured_stackable_candidates.filter(c => matches(c, query))
+    : [];
+  const general = showGeneral
+    ? DATA.general_coupons.filter(c => matches(c, query))
+    : [];
+
+  const brandColorMap = buildBrandColorMap(DATA.featured_stackable_candidates || []);
+
+  // Legend shows the clean brand/category segments (not the noisier expanded
+  // word-level search terms used for matching).
+  const legendMap = {};
+  (DATA.featured_stackable_candidates || []).forEach(c => {
+    (c.brands || []).forEach(b => {
+      if (!(b in legendMap)) legendMap[b] = c.color;
+    });
+  });
+
+  const legend = document.getElementById('brand-legend');
+  legend.innerHTML = (showGeneral && Object.keys(legendMap).length)
+    ? Object.entries(legendMap)
+        .map(([b, color]) => `<span style="background:${color}">${escapeHTML(b)}</span>`)
+        .join('')
+    : '';
+
+  featuredGrid.innerHTML = featured.length
+    ? featured.map(c => cardHTML(c, c.color || colorForIndex(0))).join('')
+    : `<div class="empty-state">No featured basket coupons match.</div>`;
+
+  generalList.innerHTML = general.length
+    ? general.map(c => rowHTML(c, brandColorMap)).join('')
+    : `<div class="empty-state">No coupons match.</div>`;
+
+  document.querySelector('section.featured').style.display = showFeatured ? '' : 'none';
+  document.querySelector('main > section:nth-of-type(2)').style.display = showGeneral ? '' : 'none';
+}
+
+async function load() {
+  try {
+    const res = await fetch('coupons.json', { cache: 'no-store' });
+    DATA = await res.json();
+
+    if (DATA.last_scrape_status === 'failed') {
+      const banner = document.getElementById('stale-banner');
+      banner.style.display = 'block';
+      banner.textContent =
+        `⚠️ This week's scrape failed, so these coupons may be out of date` +
+        (DATA.last_scrape_attempted_at
+          ? ` (last successful update: ${new Date(DATA.updated_at).toLocaleDateString()}, ` +
+            `last attempt: ${new Date(DATA.last_scrape_attempted_at).toLocaleDateString()})`
+          : '') +
+        `. Check the GitHub Actions tab for details.`;
+    }
+
+    document.getElementById('header-sub').textContent =
+      `${DATA.total_coupons ?? (DATA.featured_stackable_candidates.length + DATA.general_coupons.length)} coupons · Auto-updated every Sunday from heb.com`;
+    const updated = DATA.updated_at ? new Date(DATA.updated_at) : null;
+    document.getElementById('updated-footer').textContent = updated
+      ? `Last updated ${updated.toLocaleString()} · Source: heb.com/digital-coupon`
+      : '';
+  } catch (e) {
+    document.getElementById('featured-grid').innerHTML =
+      `<div class="empty-state">Could not load coupons.json yet — run the scraper first.</div>`;
+  }
+  render();
+}
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('filter-select').addEventListener('change', render);
+
+load();
+</script>
 
 </body>
 </html>
