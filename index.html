@@ -354,76 +354,97 @@ function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-const GENERIC_SEGMENT_WORDS = new Set([
-  // Whole segments consisting only of generic product-category words (no
-  // actual brand name) get dropped from matching entirely, so they can't
-  // light up unrelated coupons just because both happen to say "drink" or
-  // "food". Only real brand/line names should ever match.
-  'drink', 'drinks', 'food', 'foods', 'juice', 'juices', 'water', 'waters',
-  'snack', 'snacks', 'shake', 'shakes', 'powder', 'powders', 'bar', 'bars',
-  'wipe', 'wipes', 'gummy', 'gummies', 'supplement', 'supplements',
-  'product', 'products', 'item', 'items', 'care', 'wash', 'soap',
-  'lotion', 'cream', 'spray', 'gel', 'liquid', 'meal', 'meals',
-  'deodorant', 'shampoo', 'conditioner', 'cleansing', 'personal',
-  'assorted', 'varieties', 'variety', 'hair', 'face', 'body', 'skin',
-  'pouch', 'pouches', 'cup', 'cups', 'tube', 'tubes', 'bowl', 'bowls',
-  'jar', 'jars', 'bag', 'bags', 'box', 'boxes', 'can', 'cans', 'bottle',
-  'bottles', 'single', 'singles', 'multipack', 'multipacks',
-]);
+// A maintained dictionary of real brand / product-line names, built from
+// what's actually present in H-E-B's coupon catalog. This replaces trying to
+// parse brand names out of one basket-coupon sentence pattern with regex —
+// that approach was fragile (broke on any unusual phrasing) and imprecise
+// (had to fight off category words like "Hair Care" or "Deodorant" riding
+// along in the same comma list). A fixed dictionary matched with word
+// boundaries is simpler, more reliable, and easy to extend — add a new
+// brand name to the array below and it's immediately usable everywhere.
+const BRAND_DICTIONARY = [
+  "Kenvue","Neutrogena","Aveeno","OGX","Tylenol","Zarbee's","Zarbees","Listerine",
+  "Kodiak","Buldak",
+  "Dove Men+Care","Dove","AXE","Degree","TRESemme","SheaMoisture","Vaseline",
+  "Olly","Schmidt's",
+  "Nature's Truth","Nature's Bounty","Nature's Own","Nature's Bakery",
+  "Depend","Poise",
+  "The Honest Company","Honest Company",
+  "Beech-Nut",
+  "AZO","Culturelle","Estroven",
+  "Kitsch",
+  "Muscle Milk","Gatorade","Evolve",
+  "SlimFast",
+  "Camille Rose",
+  "Garnier Fructis","Garnier Whole Blends","Garnier Nutrisse","Garnier",
+  "Febreze","Secret","Old Spice","Gillette","Clairol","Cremo","Bulldog",
+  "Kotex","U by Kotex","Tillamook","L'OREAL","L'Oreal Paris","Elvive",
+  "Cascade","OxiClean","Pentel","Bonne Maman",
+  "Central Market","Colgate","Betty Crocker","Huggies","Skippy",
+  "Earth's Best","Fresh Gourmet","Natural Vitality","Neocell","Rainbow Light",
+  "Lakewood","Mr. Clean","Pillsbury","ARM & HAMMER","Crest",
+  "MorningStar Farms","The New Primal","Jimmy Dean","KA-ME","Oral-B",
+  "Cottonelle","Ozarka","Emergen-C","Evermark","Suave","Pond's","Caress",
+  "ChapStick","Q-Tip","St. Ives","Noxzema","Gold Peak","Bai","ACT",
+  "Glade","Post-it","Nexxus","Honey Stinger","Lysol","Planet Oat",
+  "Persil","Purex","Scott","AriZona","Kibbles 'n Bits","Think!",
+  "Quilted Northern","El Monterey","Suja","Bumble Bee","Playtex",
+  "Johnsonville","Good Good","DampRid","ZYRTEC","Kikkoman",
+  "Annie's","Cellucor","C4","Xtend","Monster Energy",
+  "MONDAY","Ortega","Campbell's","Kool-Aid","Country Time","Tang",
+  "Hill Country Fare","GOODLES","Applegate","Kid Cuisine",
+  "NatureSweet","PURE Zzzs","Hippeas","Goya","Galbani","MOTRIN",
+  "good2grow","Bloom","Biore","Right Guard","Allegra","Icy Hot",
+  "Raybern's","LUBRIDERM","Refresh","Catalina Crunch","ZzzQuil",
+  "Rudi's","State Fair","Jarritos","SoCozy","Organic Valley",
+  "Pure Leaf","V8","Cacique","Good Belly","Reddi Wip","Amos Peelerz",
+  "Dulcolax","Perfect Bar","Violife","DentaLife","Actual Veggies",
+  "Sprayway","Nutpods","Aspercreme","Egglife","Hidden Valley Ranch",
+  "Sandwich Bros.","Dole","Spylt","FIXODENT","Lemme","Caltrate","Silk",
+  "Play-Doh","Swiffer","Delallo","Mission","Zeiss","Stayfree",
+  "Hamburger Helper","Cattleman's","Purnell's","CHI",
+  "Welly","Simply Protein","Mack's","Renew Life","Philips Sonicare",
+  "Rubbermaid","Veggie Wash","Skinny Girl","Suavitel","Millie Moon",
+  "High Brew","OLIPOP","XYZAL","NASACORT","Moontail","Yumi",
+  "Bigelow","Unisom","Afrin","TruSkin","Beyond","That's It",
+  "Saba","Jones Dairy Farm","Florastor","Macadamia","Pirq",
+  "August","Taste Republic","Lesser Evil","Harry's","Good Sense",
+  "South 40","Aquage","Copra Coconuts","Koko & Karma",
+  "Fancy Feast","Ricos","Pocky","Biz","Coro","Country Crock","Claritin",
+  "Lean Body","Palmetto","Hims","Storm","Unbound Snacks","Blue Bottle",
+  "Always Discreet","Flamingo",
+].sort((a, b) => b.length - a.length); // longest-first so "Dove Men+Care" is
+                                        // checked before plain "Dove"
 
-// Some category qualifiers are two-plus words and won't be caught by the
-// all-words-generic check above (e.g. "Hair Care" — "hair" alone might
-// describe a real brand elsewhere). Block these exact phrases outright.
-const GENERIC_SEGMENT_PHRASES = new Set([
-  'hair care', 'face care', 'body care', 'skin care', 'personal cleansing',
-  'hand soap', 'body wash', 'baby wash', 'body lotion', 'hair accessory',
-]);
-
-// Pull the brand/category names out of a single basket coupon's description,
-// e.g. "...when you buy $25 of Dove, AXE, Degree, or Schmidt's items" ->
-// ["Dove", "AXE", "Degree", "Schmidt's"]. Each comma/or-separated segment is
-// kept whole and used as-is for matching — no sub-word splitting — so a
-// generic word inside a longer brand phrase (like "Drink" in "SlimFast Ready
-// to Drink Shakes") can never match on its own elsewhere. A segment is
-// dropped if it's nothing but a generic category/product-type word or
-// phrase with no real brand name in it (e.g. "Hair Care", "Deodorant",
-// "assorted varieties").
-function extractBrandsFromDescription(description) {
-  const segmentRe = /buy\s+\$\d+(?:\.\d{2})?\s+of\s+(.+?)(?:\s+items?\b|\s+products?\b|\s*\(|$)/i;
-  const m = description.match(segmentRe);
-  if (!m) return [];
-  return m[1]
-    .replace(/\bor\b/gi, ',')
-    .replace(/\band\b/gi, ',')
-    .split(',')
-    .map(s => s.trim())
-    .filter(s => s.length > 1 && s.length < 40)
-    .filter(s => !/^[\d.,\-\/\s]+(oz|pk|pks|ct|lb|fl)\.?$/i.test(s))
-    .filter(s => !GENERIC_SEGMENT_PHRASES.has(s.toLowerCase()))
-    .filter(s => {
-      const words = s.toLowerCase().split(/\s+/);
-      return !words.every(w => GENERIC_SEGMENT_WORDS.has(w));
-    });
+// Which dictionary brands are actually present in one coupon's text.
+// Word-boundary matching (not comma-splitting one sentence) means this works
+// identically whether the brand appears in a featured basket coupon or a
+// completely unrelated single-item coupon — the two sides of a match are
+// found the exact same way.
+function findBrandsInText(description) {
+  const found = new Set();
+  for (const brand of BRAND_DICTIONARY) {
+    const re = new RegExp('\\b' + escapeRegExp(brand) + '\\b', 'i');
+    if (re.test(description)) found.add(brand);
+  }
+  return found;
 }
 
-// Build { brandSegment: colorHex } across all featured coupons, matching
-// only on the whole clean brand/product-line segments (never individual
-// generic words), and attach each featured coupon's own segments + color
-// for its card chips.
+// Assigns each featured coupon a color and its own matched brand set (for
+// chips), then returns { brand: colorHex } for every brand that appears in
+// at least one featured coupon — that's the full set of "stackable" brands
+// to look for and highlight in the general list.
 function buildBrandColorMap(featuredList) {
   const brandColorMap = {};
   featuredList.forEach((c, i) => {
     const color = colorForIndex(i);
-    const segments = extractBrandsFromDescription(c.description);
-    c.brands = segments;       // shown as chips on the card
+    const brands = findBrandsInText(c.description);
+    c.brands = Array.from(brands);   // shown as chips on the card
     c.color = color;
-    segments.forEach(term => {
-      if (!(term in brandColorMap)) {
-        brandColorMap[term] = color;
-      }
+    brands.forEach(brand => {
+      if (!(brand in brandColorMap)) brandColorMap[brand] = color;
     });
   });
-  // Longest terms first so "Dove Men+Care" matches before plain "Dove"
   const ordered = {};
   Object.keys(brandColorMap)
     .sort((a, b) => b.length - a.length)
@@ -435,7 +456,7 @@ function highlightBrands(text, brandColorMap) {
   let result = escapeHTML(text);
   Object.keys(brandColorMap).forEach(brand => {
     const color = brandColorMap[brand];
-    const re = new RegExp(`(${escapeRegExp(escapeHTML(brand))})`, 'i');
+    const re = new RegExp(`\\b(${escapeRegExp(escapeHTML(brand))})\\b`, 'i');
     if (re.test(result)) {
       result = result.replace(re, `<span class="brand-hit" style="background:${color}">$1</span>`);
     }
