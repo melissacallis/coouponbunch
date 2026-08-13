@@ -372,9 +372,19 @@ function extractBrandsFromDescription(description) {
 }
 
 const STOPWORDS = new Set([
-  'or', 'and', 'any', 'the', 'of', 'items', 'item', 'product', 'products',
-  'excludes', 'excluding', 'select', 'some', 'other', 'favorites', 'brands',
-  'brand', 'assorted', 'varieties', 'a', 'an', 'for', 'with', 'your',
+  // connective / filler words
+  'or', 'and', 'any', 'the', 'of', 'a', 'an', 'for', 'with', 'your',
+  'when', 'you', 'buy', 'from', 'to', 'in', 'on', 'at', 'by',
+  // coupon boilerplate
+  'items', 'item', 'product', 'products', 'excludes', 'excluding',
+  'select', 'some', 'other', 'favorites', 'brands', 'brand',
+  'assorted', 'varieties', 'variety', 'size', 'sizes', 'pack', 'packs',
+  'ct', 'oz', 'lb', 'pk', 'fl', 'excludes', 'includes', 'including',
+  'valid', 'only', 'not', 'listed', 'trial', 'travel',
+  // generic food/product words too broad to be a useful signal on their own
+  'sauce', 'sauces', 'flavor', 'flavors', 'cooking', 'natural', 'fresh',
+  'original', 'classic', 'family', 'premium', 'basic', 'basics',
+  'care', 'clean', 'cleaning', 'personal', 'home', 'body', 'skin',
 ]);
 
 // Category-style segments ("School or Office Supplies") won't literally
