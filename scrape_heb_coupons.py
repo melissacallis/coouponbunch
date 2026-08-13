@@ -25,11 +25,25 @@ import requests
 from bs4 import BeautifulSoup
 
 BASE_URL = "https://www.heb.com/digital-coupon/coupon-selection/all-coupons"
+HOME_URL = "https://www.heb.com/"
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-    )
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,"
+        "image/avif,image/webp,*/*;q=0.8"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
+    "Referer": "https://www.heb.com/",
 }
 
 # Matches things like "$5 off your basket when you buy $25 of ..."
@@ -42,6 +56,17 @@ VALUE_CHIP_BASKET_PATTERN = re.compile(r"\$\d+(\.\d{2})?\s+off\s+\$\d+", re.I)
 
 MAX_RETRIES = 3
 RETRY_BACKOFF_SECONDS = 5
+
+
+def warm_up_session(session):
+    """Visit the homepage first so H-E-B's site sets normal session cookies
+    before we request the coupon page. A cookieless, header-thin first
+    request is a classic bot-block trigger (hence the 401s)."""
+    try:
+        resp = session.get(HOME_URL, headers=HEADERS, timeout=30)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"  warm-up request to homepage failed (continuing anyway): {e}", file=sys.stderr)
 
 
 def fetch_page(cursor=None, session=None):
@@ -154,6 +179,7 @@ class ScrapeFailure(Exception):
 
 def scrape_all(max_pages=25, delay_seconds=1.0):
     session = requests.Session()
+    warm_up_session(session)
     all_coupons = []
     cursor = None
     for page_num in range(1, max_pages + 1):

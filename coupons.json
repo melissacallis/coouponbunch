@@ -486,5 +486,8 @@
       "limit": "Limit 1 per customer",
       "url": "https://www.heb.com/digital-coupon/coupon-detail/84057883"
     }
-  ]
+  ],
+  "last_scrape_status": "failed",
+  "last_scrape_error": "Failed to fetch page after 3 attempts: 401 Client Error: Unauthorized for url: https://www.heb.com/digital-coupon/coupon-selection/all-coupons?pageName=all-coupons",
+  "last_scrape_attempted_at": "2026-08-13T02:39:55.132242+00:00"
 }
