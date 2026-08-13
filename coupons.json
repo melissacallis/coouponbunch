@@ -1,0 +1,490 @@
+{
+  "updated_at": "2026-08-13T01:41:35.854067+00:00",
+  "source_url": "https://www.heb.com/digital-coupon/coupon-selection/all-coupons?pageName=all-coupons",
+  "total_coupons": 60,
+  "note": "Initial seed data: page 1 of 18 (60 of 1049 total coupons). The Sunday GitHub Action will replace this with the full current list.",
+  "featured_stackable_candidates": [
+    {
+      "id": "84054347",
+      "value": "$5 off $25 (select items)",
+      "description": "$5 off your basket when you buy $25 of Kenvue Brands Neutrogena, Aveeno, OGX, Tylenol, Zarbees, or Listerine items",
+      "expires": "8/25/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84054347"
+    },
+    {
+      "id": "84048909",
+      "value": "$5 off $20 (select items)",
+      "description": "$5 off your basket when you buy $20 of Kodiak items",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84048909"
+    },
+    {
+      "id": "84046213",
+      "value": "$2 off $10 (select items)",
+      "description": "$2 off your basket when you buy $10 of Buldak Ramen, 5 pks., Bowls or Cups, 2.46 - 4.23 oz., Buldak Potato Chips, 4.23 oz. or Buldak Hot Sauce, 7.05 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84046213"
+    },
+    {
+      "id": "84054325",
+      "value": "$5 off $25 (select items)",
+      "description": "$5 off your basket when you buy $25 of School or Office Supplies (excludes backpacks)",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84054325"
+    },
+    {
+      "id": "84045827",
+      "value": "$5 off $15 (select items)",
+      "description": "$5 off your basket when you buy $15 of Dove, Dove Men+Care, AXE, Degree, TRESemme, SheaMoisture, Vaseline, Olly, or Schmidt's Personal Cleansing, Deodorant, Lotion, Hair Care, Face Care, or Hand Soap items (excludes trial/travel)",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84045827"
+    },
+    {
+      "id": "84046627",
+      "value": "$5 off $10 (select items)",
+      "description": "$5 off your basket when you buy $10 of Nature's Truth Vitamins, Supplements, or Probiotics",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84046627"
+    }
+  ],
+  "general_coupons": [
+    {
+      "id": "84054349",
+      "value": "$1.50 off 2",
+      "description": "$1.50 off 2 Quaker Oat Shake & Go, 1.5 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84054349"
+    },
+    {
+      "id": "84055131",
+      "value": "20% off",
+      "description": "20% off any Higher Harvest by H-E-B items",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84055131"
+    },
+    {
+      "id": "84055723",
+      "value": "$1 off",
+      "description": "$1 off H-E-B or Hill Country Fare Frozen Fully Cooked Breaded Chicken item, 20 - 64 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84055723"
+    },
+    {
+      "id": "84055660",
+      "value": "Combo Loco",
+      "description": "Buy 2 Eggo Waffles, 10 ct., assorted varieties get FREE H-E-B Frozen Whole Strawberries, 16 oz.",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84055660"
+    },
+    {
+      "id": "84062777",
+      "value": "$1 off",
+      "description": "$1 off H-E-B Gala Apples, 3 lb. bag",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84062777"
+    },
+    {
+      "id": "84051572",
+      "value": "Combo Loco",
+      "description": "Buy 2 Post Family Size Cereal, 16.5 - 19.5 oz., assorted varieties get FREE Peter Pan Peanut Butter, 16.3 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84051572"
+    },
+    {
+      "id": "84049522",
+      "value": "Combo Loco",
+      "description": "Buy Kraft or Velveeta Macaroni & Cheese, 8 ct. cups, assorted varieties get FREE Capri Sun Juice Drink, 10 ct., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84049522"
+    },
+    {
+      "id": "84064142",
+      "value": "$1.50 off",
+      "description": "$1.50 off any KIND Snack Bars or Granola Clusters",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84064142"
+    },
+    {
+      "id": "84057989",
+      "value": "25% off",
+      "description": "25% off Stonyfield Organic Yogurt Smoothies, Pouches, Cups, or Tubes, 4 - 12 ct., assorted varieties",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84057989"
+    },
+    {
+      "id": "84056912",
+      "value": "Combo Loco",
+      "description": "Buy H\u2011E\u2011B Fully Cooked Frozen Kolaches, 16 ct., assorted varieties get FREE H\u2011E\u2011B Frozen Breakfast Flautas, 6 ct., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84056912"
+    },
+    {
+      "id": "84056856",
+      "value": "2 for $14",
+      "description": "2 for $14 (when you buy 2) H-E-B Variety Pack Chips, 15 - 20 ct., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84056856"
+    },
+    {
+      "id": "84055846",
+      "value": "Combo Loco",
+      "description": "Buy H-E-B AA or AAA Batteries, 8 pk. get FREE H-E-B Standard Insulated Reusable Bag",
+      "expires": "9/8/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84055846"
+    },
+    {
+      "id": "84055181",
+      "value": "Combo Loco",
+      "description": "Buy Cheez-It or Kellogg's Mixed Variety Packs, 30 ct. get FREE Rice Krispies Treats, 16 ct., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84055181"
+    },
+    {
+      "id": "84055787",
+      "value": "$1 off",
+      "description": "$1 off H-E-B Tru Grit Disinfecting Wipes, 75 ct., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84055787"
+    },
+    {
+      "id": "84058592",
+      "value": "$1 off",
+      "description": "$1 off H-E-B Cereal, 12 - 16 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84058592"
+    },
+    {
+      "id": "84050452",
+      "value": "$2 off 2",
+      "description": "$2 off 2 GUM Oral Care items (excludes trial/travel sizes)",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84050452"
+    },
+    {
+      "id": "84048054",
+      "value": "$3 off",
+      "description": "$3 off Archer Jerky, 7 oz. or Meat Sticks, 8 - 16 ct., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84048054"
+    },
+    {
+      "id": "84049656",
+      "value": "Combo Loco",
+      "description": "Buy Mott's Applesauce Pouches, 12 pk., assorted varieties get FREE Sara Lee Bread, 20 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84049656"
+    },
+    {
+      "id": "84049870",
+      "value": "$1 off",
+      "description": "$1 off Smash Foods Superfood Fruit Spread, 8 oz. or Snack Bites, 1.8 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84049870"
+    },
+    {
+      "id": "84057488",
+      "value": "$1.20 off",
+      "description": "$1.20 off Crystal Geyser Alpine Spring Water, 30 pk. / 8 oz.",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84057488"
+    },
+    {
+      "id": "84055104",
+      "value": "$1 off",
+      "description": "$1.00 OFF WHEN YOU BUY ONE (1) GATORADE, PROPEL, or GATORADE WATER MULTIPACK",
+      "expires": "9/5/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84055104"
+    },
+    {
+      "id": "84060169",
+      "value": "$2 off 2",
+      "description": "Save $2.00 on ANY TWO (2) Clorox Home Cleaning, Laundry, or Pine-Sol Products (Excludes Clorox Fraganzia, $1.25, trial size and travel size, tools, & textiles)",
+      "expires": "8/29/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84060169"
+    },
+    {
+      "id": "84052803",
+      "value": "25% off",
+      "description": "25% off Sharpie, Elmer's, Expo, or Paper Mate Pens, Pencils, Markers, or Glue Sticks, 6 - 36 ct., assorted varieties",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84052803"
+    },
+    {
+      "id": "84056898",
+      "value": "Combo Loco",
+      "description": "Buy Zebra Pens, Pencils, or Markers item get 2nd FREE",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84056898"
+    },
+    {
+      "id": "84064505",
+      "value": "$3 off 4",
+      "description": "SAVE $3.00 on any FOUR (4) Participating Pepsi-Cola Beverages, Multipacks only",
+      "expires": "9/5/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84064505"
+    },
+    {
+      "id": "84059813",
+      "value": "$1 off 2",
+      "description": "$1.00 OFF When you buy TWO(2) any flavor/variety Pillsbury Refrigerated Canned Dough Products (Excludes 5CT Biscuits and 4CT Crescents)",
+      "expires": "9/14/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84059813"
+    },
+    {
+      "id": "84048016",
+      "value": "Combo Loco",
+      "description": "Buy H-E-B Sparkling Water, 12 pk. / 12 oz. cans, assorted varieties get FREE True Lemon Flavored Drink Mix, 6 - 10 ct., assorted varieties",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84048016"
+    },
+    {
+      "id": "84060886",
+      "value": "Combo Loco",
+      "description": "Buy Meal Simple Sandwich or Wrap get FREE Reese's, Hershey's, Kit Kat, Payday, Almond Joy, or Whatchamacallit King Size Candy, 2.6 - 3.5 oz., assorted varieties",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84060886"
+    },
+    {
+      "id": "84059301",
+      "value": "$2 off",
+      "description": "SAVE $2.00 on any ONE (1) ARM & HAMMER Liquid Detergent",
+      "expires": "8/25/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84059301"
+    },
+    {
+      "id": "84051408",
+      "value": "Combo Loco",
+      "description": "Buy $15 of H-E-B Natural Chicken get Free H-E-B Cooking Sauce, 6.89 -9 oz., assorted varieties",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84051408"
+    },
+    {
+      "id": "84060114",
+      "value": "$7 off 2",
+      "description": "Save $7.00 on any TWO (2) AXE Body Sprays or Sticks (excludes twin packs, trial and travel sizes)",
+      "expires": "8/22/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84060114"
+    },
+    {
+      "id": "84056235",
+      "value": "$3 off 2",
+      "description": "Save $3.00 on any TWO (2) Degree Body Heat Activated or Ultraclear Antiperspirant Stick or Dry Spray or Degree Clinical Protection Deodorant or Whole Body Deodorant product (excludes twin packs, 0.5oz, 1.0oz sizes)",
+      "expires": "8/22/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84056235"
+    },
+    {
+      "id": "84053435",
+      "value": "$10 (redeem in store)",
+      "description": "Buy $50 of Schlotzsky's, Whataburger, Pappas, Domino's, Chipotle, Panda Express, Olive Garden, Chili's, Maggiano's, Cracker Barrel, or Applebee's Gift Cards get FREE $10 H-E-B Gift Card",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84053435"
+    },
+    {
+      "id": "84053527",
+      "value": "25% off",
+      "description": "25% off H-E-B Flavor Favorites Candles or Wax Melts items",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84053527"
+    },
+    {
+      "id": "84059749",
+      "value": "50\u00a2 off 2",
+      "description": "$0.50 OFF When you buy TWO(2) BOXES any flavor/variety 4 COUNT OR LARGER Nature Valley, Fiber One, Protein One, General Mills Cereal Bars, Mott's Bars, Chex Mix Bars, LARABAR Bars, GHOST Bars OR EPIC Bars or Strips",
+      "expires": "9/14/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84059749"
+    },
+    {
+      "id": "84060255",
+      "value": "$2 off",
+      "description": "Save $2.00 ONE Dawn Ultra 30.8oz or larger, Platinum 24oz or larger OR Platinum Plus PowerSuds 17.4oz or larger (excludes travel/trial size)",
+      "expires": "8/29/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84060255"
+    },
+    {
+      "id": "84051204",
+      "value": "25% off",
+      "description": "25% off Burt's Bees Face Care, Lip Care, Body Care, Lip Color, Cold, or Baby items (excludes trial/travel sizes)",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84051204"
+    },
+    {
+      "id": "84050659",
+      "value": "25% off",
+      "description": "25% off Cleanlogic items",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84050659"
+    },
+    {
+      "id": "84052486",
+      "value": "20% off",
+      "description": "20% off Trident Gum items",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84052486"
+    },
+    {
+      "id": "84047790",
+      "value": "50\u00a2 off",
+      "description": "50\u00a2 off H-E-B Fresh Watermelon or Cantaloupe Chunks, 10 oz.",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84047790"
+    },
+    {
+      "id": "84060955",
+      "value": "$3 off",
+      "description": "SAVE $3.00 on any ONE (1) Dove Men+Care Body Wash 18oz, Plant Powered Body Wash 18oz+ or Bar 4-6ct (excludes items and sizes not listed)",
+      "expires": "8/22/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84060955"
+    },
+    {
+      "id": "84057394",
+      "value": "$1.50 off",
+      "description": "Save $1.50 on any ONE (1) Package of Huggies Diapers, Little Movers, Little Movers HuggFit 360, Little Snugglers, Overnites, Snug & Dry, and Skin Essentials (Valid only on 10ct. or larger.)",
+      "expires": "9/5/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84057394"
+    },
+    {
+      "id": "84061050",
+      "value": "$2 off",
+      "description": "SAVE $2.00 on any ONE (1) Dove Body Wash (20oz) or Scrub (15oz) (excludes Plant Milk Scrubs, items and sizes not listed)",
+      "expires": "8/22/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84061050"
+    },
+    {
+      "id": "84059750",
+      "value": "50\u00a2 off 2",
+      "description": "$0.50 OFF When you buy TWO(2) BOXES any flavor/variety 6 COUNT OR LARGER Betty Crocker Fruit Shapes, Fruit by the Foot, Gushers, Fruit Roll-Ups Fruit Flavored Snacks OR Mott's Fruit Flavored Snacks",
+      "expires": "9/14/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84059750"
+    },
+    {
+      "id": "84056014",
+      "value": "Combo Loco",
+      "description": "Buy H-E-B Thick Cut Bacon, 24 oz., assorted varieties get FREE H-E-B Premium Breakfast Sausage, 16 oz., assorted varieties",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84056014"
+    },
+    {
+      "id": "84061881",
+      "value": "$1 off 2",
+      "description": "Save $1.00 on any TWO (2) Creamer or La Colombe Multi-Serve Cold Brew",
+      "expires": "9/5/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84061881"
+    },
+    {
+      "id": "84056704",
+      "value": "$2 off",
+      "description": "SAVE $2.00 on any ONE (1) 11.5oz Hellmann's or Best Foods product",
+      "expires": "8/26/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84056704"
+    },
+    {
+      "id": "84056266",
+      "value": "$1 off",
+      "description": "Save $1.00 on any ONE (1) LISTERINE Mouthwash product (500 mL or larger), POCKETMIST product (2ct. or larger), or single use liquid packs (15 ct or larger)",
+      "expires": "8/29/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84056266"
+    },
+    {
+      "id": "84057882",
+      "value": "$2 off",
+      "description": "Save $2.00 ONE Dawn Powerwash Starter Kit (excludes travel/trial size)",
+      "expires": "8/29/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84057882"
+    },
+    {
+      "id": "84060011",
+      "value": "$1 off 2",
+      "description": "$1.00 OFF When you buy TWO(2) Old El Paso products listed: Hard Shells, Kits, Sauce, Tortillas, Pockets, Bowls, Beans, Rice, Chiles, Soup, Broth",
+      "expires": "9/14/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84060011"
+    },
+    {
+      "id": "84061671",
+      "value": "$2.50 off",
+      "description": "Save $2.50 on any ONE (1) pack of Poise Pads (12 Ct+) or Liners (44 Ct+) OR any Depend Product (8 Ct or larger)",
+      "expires": "8/29/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84061671"
+    },
+    {
+      "id": "84044969",
+      "value": "$2 off",
+      "description": "$2 off any Garnier Nutrisse or Olia Hair Color item",
+      "expires": "Tuesday",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84044969"
+    },
+    {
+      "id": "84059571",
+      "value": "$1 off",
+      "description": "$1 off H-E-B Prepacked Snack Bags, 8 - 16 oz., or H-E-B Almond or Peanut Butter, 16 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84059571"
+    },
+    {
+      "id": "84057883",
+      "value": "$3 off",
+      "description": "Save $3.00 ONE Febreze Car 2-CT/3-CT (excludes trial/travel size)",
+      "expires": "8/29/2026",
+      "limit": "Limit 1 per customer",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/84057883"
+    }
+  ]
+}
