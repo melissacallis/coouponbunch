@@ -259,6 +259,13 @@ function couponImageUrl(id) {
 let selectedFeaturedId = null;
 const checkedGeneralIds = new Set();
 
+// Side panel state: which coupon's heb.com page is currently framed, and
+// whether the panel is shown at all. Not persisted — resets to the featured
+// coupon's own page each time a new stack is opened.
+let panelUrl = null;
+let panelLabel = '';
+let panelVisible = true;
+
 function loadPriceOverrides() {
   try {
     PRICE_OVERRIDES = JSON.parse(localStorage.getItem(PRICE_OVERRIDES_KEY) || '{}');
@@ -354,12 +361,17 @@ function matchRowHTML(m) {
   const badgeClass = effectivePrice != null ? 'price-verified' : tier;
   const badgeText = effectivePrice != null ? 'priced' : tier === 'strong' ? 'strong match' : 'verify at checkout';
 
+  const isFramed = panelUrl === coupon.url;
+
   return `
     <label class="match-row${checked ? ' checked' : ''}" data-coupon-id="${escapeHTML(coupon.id)}" title="${escapeHTML(reasons.join(' · '))}">
       <div class="match-row-top">
         <input type="checkbox" data-coupon-id="${escapeHTML(coupon.id)}" ${checked ? 'checked' : ''}>
         <span class="match-value">${escapeHTML(coupon.value || '')}</span>
         <span class="confidence-badge ${badgeClass}">${badgeText}</span>
+        <button type="button" class="view-in-panel-btn${isFramed ? ' active' : ''}" data-panel-url="${escapeHTML(coupon.url)}" data-panel-label="${escapeHTML(coupon.value || '')}">
+          ${isFramed ? '👁 Viewing' : '👁 View'}
+        </button>
         <span class="price-input-wrap">$
           <input type="number" step="0.01" min="0" placeholder="price" data-price-for="${escapeHTML(coupon.id)}"
                  value="${Object.prototype.hasOwnProperty.call(PRICE_OVERRIDES, coupon.id) ? PRICE_OVERRIDES[coupon.id] : ''}">
@@ -387,6 +399,11 @@ function renderStackBuilder() {
   const strongMatches = allMatches.filter((m) => m.tier === 'strong');
   const possibleMatches = allMatches.filter((m) => m.tier === 'possible');
 
+  if (panelUrl === null) {
+    panelUrl = featured.url;
+    panelLabel = featured.value || 'Featured coupon';
+  }
+
   container.style.display = 'block';
   container.innerHTML = `
     <div class="stack-builder-header">
@@ -396,22 +413,39 @@ function renderStackBuilder() {
       </div>
       <button type="button" class="stack-builder-close" id="stack-builder-close" aria-label="Close">✕</button>
     </div>
-    ${strongMatches.length ? `
-      <div class="tier-group">
-        <h3><span class="tier-dot strong"></span>Strong matches (${strongMatches.length})</h3>
-        ${strongMatches.map(matchRowHTML).join('')}
-      </div>` : ''}
-    ${possibleMatches.length ? `
-      <div class="tier-group">
-        <h3><span class="tier-dot possible"></span>Possible — verify at checkout (${possibleMatches.length})</h3>
-        ${possibleMatches.map(matchRowHTML).join('')}
-      </div>` : ''}
-    ${!strongMatches.length && !possibleMatches.length ? `<div class="empty-state">No obviously matching coupons found for this basket coupon yet.</div>` : ''}
-    <div class="stack-summary" id="stack-summary"></div>
+    <div class="stack-builder-body">
+      <div class="stack-builder-main">
+        ${strongMatches.length ? `
+          <div class="tier-group">
+            <h3><span class="tier-dot strong"></span>Strong matches (${strongMatches.length})</h3>
+            ${strongMatches.map(matchRowHTML).join('')}
+          </div>` : ''}
+        ${possibleMatches.length ? `
+          <div class="tier-group">
+            <h3><span class="tier-dot possible"></span>Possible — verify at checkout (${possibleMatches.length})</h3>
+            ${possibleMatches.map(matchRowHTML).join('')}
+          </div>` : ''}
+        ${!strongMatches.length && !possibleMatches.length ? `<div class="empty-state">No obviously matching coupons found for this basket coupon yet.</div>` : ''}
+        <div class="stack-summary" id="stack-summary"></div>
+      </div>
+      ${panelVisible ? `
+        <div class="stack-builder-panel">
+          <div class="panel-header">
+            <button type="button" class="panel-view-featured-btn" title="Show the featured basket coupon's page">↩ ${escapeHTML(featured.value || 'featured coupon')}</button>
+            <a class="panel-open-new-tab" href="${escapeHTML(panelUrl)}" target="_blank" rel="noopener">Open in new tab ↗</a>
+            <button type="button" class="panel-hide-btn" id="panel-hide-btn" aria-label="Hide panel">✕</button>
+          </div>
+          <div class="panel-current-label">Viewing: ${escapeHTML(panelLabel)}</div>
+          <iframe id="coupon-frame" src="${escapeHTML(panelUrl)}" loading="lazy" referrerpolicy="no-referrer"></iframe>
+          <p class="panel-fallback-note">Blank above? H-E-B is likely blocking embedded pages — use "Open in new tab" instead.</p>
+        </div>` : `
+        <button type="button" class="panel-show-btn" id="panel-show-btn">👁 Show browsing panel</button>`}
+    </div>
   `;
 
   document.getElementById('stack-builder-close').addEventListener('click', () => {
     selectedFeaturedId = null;
+    panelUrl = null;
     render();
   });
 
@@ -433,6 +467,40 @@ function renderStackBuilder() {
       renderHero();
     });
   });
+
+  container.querySelectorAll('.view-in-panel-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      panelUrl = btn.dataset.panelUrl;
+      panelLabel = btn.dataset.panelLabel;
+      renderStackBuilder();
+    });
+  });
+
+  const viewFeaturedBtn = container.querySelector('.panel-view-featured-btn');
+  if (viewFeaturedBtn) {
+    viewFeaturedBtn.addEventListener('click', () => {
+      panelUrl = featured.url;
+      panelLabel = featured.value || 'Featured coupon';
+      renderStackBuilder();
+    });
+  }
+
+  const hideBtn = document.getElementById('panel-hide-btn');
+  if (hideBtn) {
+    hideBtn.addEventListener('click', () => {
+      panelVisible = false;
+      renderStackBuilder();
+    });
+  }
+  const showBtn = document.getElementById('panel-show-btn');
+  if (showBtn) {
+    showBtn.addEventListener('click', () => {
+      panelVisible = true;
+      renderStackBuilder();
+    });
+  }
 
   recomputeSummary(featured, allMatches);
 }
@@ -481,8 +549,11 @@ function recomputeSummary(featured, allMatches) {
 }
 
 function openStackBuilder(featuredId) {
+  if (featuredId !== selectedFeaturedId) {
+    panelUrl = null; // reset to the new featured coupon's own page
+    checkedGeneralIds.clear();
+  }
   selectedFeaturedId = featuredId;
-  checkedGeneralIds.clear();
   render();
   document.getElementById('stack-builder')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }

@@ -224,6 +224,110 @@ section.stackable-section .sub {
 }
 .match-row .matched-price { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
 
+.view-in-panel-btn {
+  background: #eef0f2;
+  border: 1px solid var(--border);
+  color: var(--heb-dark);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.view-in-panel-btn.active { background: var(--price-verified); border-color: var(--price-verified); color: white; }
+
+/* --- Stack Builder two-column layout: match list + browsing panel --- */
+.stack-builder-body {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 18px;
+  align-items: start;
+}
+.stack-builder-panel {
+  position: sticky;
+  top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--heb-dark);
+  flex-wrap: wrap;
+}
+.panel-view-featured-btn {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+.panel-open-new-tab {
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.panel-hide-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+}
+.panel-current-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+#coupon-frame {
+  width: 100%;
+  height: 60vh;
+  border: none;
+  background: #fafafa;
+}
+.panel-fallback-note {
+  font-size: 0.68rem;
+  color: var(--muted);
+  padding: 6px 10px;
+  margin: 0;
+  background: #fafafa;
+}
+.panel-show-btn {
+  align-self: start;
+  background: var(--card-bg);
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  .stack-builder-body { grid-template-columns: 1fr; }
+  .stack-builder-panel { position: static; }
+  #coupon-frame { height: 50vh; }
+}
+
 .stack-summary {
   position: sticky;
   bottom: 12px;
