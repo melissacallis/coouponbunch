@@ -2,7 +2,7 @@
   "updated_at": "2026-08-13T03:09:36.911154+00:00",
   "source_url": "https://www.heb.com/digital-coupon/coupon-selection/all-coupons?pageName=all-coupons",
   "total_coupons": 360,
-  "note": "Pages 1-6 of 18 (360 of 1049 total H-E-B coupons) - pulled manually via live browsing due to Incapsula bot protection blocking automated scraping. Run scrape_heb_coupons.py locally or ask Claude to refresh for updates.",
+  "note": "Pages 1-6 of 18 (360 of 1049 total H-E-B coupons) - pulled manually via live browsing due to Incapsula bot protection blocking automated scraping. Run the bookmarklet (tools/bookmarklet/README.md) + tools/import_coupons.py for a full refresh, or trigger the weekly GitHub Action (scrape_coupons.py) which now attempts a headless-browser scrape.",
   "last_scrape_status": "partial_manual",
   "featured_stackable_candidates": [
     {

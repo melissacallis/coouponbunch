@@ -9,10 +9,12 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -23,12 +25,15 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright's Chromium
+        run: playwright install --with-deps chromium
 
       - name: Run scraper
         id: scrape
         run: |
-          if python scrape_heb_coupons.py; then
+          if python scrape_coupons.py; then
             echo "status=success" >> "$GITHUB_OUTPUT"
           else
             echo "status=failed" >> "$GITHUB_OUTPUT"
@@ -61,11 +66,17 @@ jobs:
                 `[workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
                 "",
                 "The site's last known-good `coupons.json` was left in place ",
-                "(marked stale) so heb.html doesn't go blank, but it will not ",
+                "(marked stale) so index.html doesn't go blank, but it will not ",
                 "reflect this week's coupons until the scraper is fixed.",
                 "",
-                "Likely cause: H-E-B changed their page markup and the CSS ",
-                "selectors in `scrape_heb_coupons.py` need updating.",
+                "This scrape runs headless Chromium against a site protected by ",
+                "Incapsula bot detection, so an occasional block is expected, not ",
+                "necessarily a bug. The reliable fix: run the bookmarklet in your ",
+                "own logged-in browser — see `tools/bookmarklet/README.md` — then ",
+                "`python tools/import_coupons.py` to refresh coupons.json directly.",
+                "",
+                "If it fails every week, H-E-B likely changed their page markup and ",
+                "the selectors in `scrape_coupons.py` need updating.",
               ].join("\n"),
               labels: ["bug", "scraper"],
             });

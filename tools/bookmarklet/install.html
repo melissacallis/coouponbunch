@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CouponBunch — Install Bookmarklets</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+         max-width: 720px; margin: 40px auto; padding: 0 20px; color: #1b1b1b; line-height: 1.5; }
+  h1 { font-size: 1.4rem; }
+  .bookmarklet-card { border: 1px solid #e3e1db; border-radius: 12px; padding: 20px; margin: 20px 0; }
+  .bookmarklet-card p.run-on { color: #6b6b6b; font-size: 0.9rem; }
+  .drag-link { display: inline-block; background: #d5121e; color: white; text-decoration: none;
+                padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: grab; }
+  .steps { font-size: 0.92rem; }
+  code { background: #f7f6f3; padding: 1px 6px; border-radius: 4px; }
+  details summary { cursor: pointer; color: #6b6b6b; font-size: 0.85rem; margin-top: 10px; }
+  pre { background: #1b1b1b; color: #d4d4d4; padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 0.78rem; }
+</style>
+</head>
+<body>
+<h1>CouponBunch bookmarklets</h1>
+<p>Drag a button below to your bookmarks bar. Click it while on the matching H-E-B page —
+it runs in your own logged-in browser, so it sees exactly what you see.</p>
+
+<div class="bookmarklet-card">
+  <h2>📥 Scrape H-E-B Coupons</h2>
+  <p class="run-on">Run on: H-E-B's All Coupons page (heb.com/digital-coupon/coupon-selection/all-coupons), while logged in</p>
+  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20coupon-scraping%20bookmarklet%20%E2%80%94%20source%20%28readable%29%20version.%0A%20%2A%0A%20%2A%20Run%20this%20on%20H-E-B%27s%20%22All%20coupons%22%20page%20%28heb.com/digital-coupon/...%29%20while%0A%20%2A%20logged%20in.%20It%20reads%20the%20page%27s%20own%20rendered%20DOM%20%28not%20a%20fetch%20from%0A%20%2A%20scratch%29%2C%20walking%20through%20pagination%20the%20same%20way%20a%20human%20would%20%E2%80%94%20click%0A%20%2A%20%22Next%22%20if%20present%2C%20otherwise%20scroll%20for%20infinite-scroll%20pages%20%E2%80%94%20so%20it%0A%20%2A%20works%20regardless%20of%20which%20pagination%20style%20H-E-B%20is%20using%20this%20week%2C%20and%0A%20%2A%20it%20inherits%20your%20real%20browser%20session/cookies%2C%20which%20is%20what%20lets%20it%20get%0A%20%2A%20past%20H-E-B%27s%20bot%20protection%20where%20server-side%20scraping%20gets%20blocked.%0A%20%2A%0A%20%2A%20Usage%3A%20see%20tools/bookmarklet/README.md.%20In%20short%20%E2%80%94%20either%20drag%20the%0A%20%2A%20generated%20bookmarklet%20link%20%28tools/bookmarklet/README.md%2C%20built%20by%0A%20%2A%20build.py%29%20to%20your%20bookmarks%20bar%20and%20click%20it%20on%20the%20coupon%20page%2C%20or%20paste%0A%20%2A%20this%20file%27s%20contents%20directly%20into%20the%20browser%20DevTools%20Console%20on%20that%0A%20%2A%20page%20%28identical%20effect%29.%0A%20%2A%0A%20%2A%20When%20it%20finishes%2C%20it%20downloads%20%22heb-coupons-raw.json%22%20to%20your%20Downloads%0A%20%2A%20folder.%20Then%20run%3A%20python%20tools/import_coupons.py%0A%20%2A/%0A%28async%20%28%29%20%3D%3E%20%7B%0A%20%20const%20CARD_SELECTOR%20%3D%20%27a%5Bhref%2A%3D%22/digital-coupon/coupon-detail/%22%5D%27%3B%0A%20%20const%20MAX_PAGES%20%3D%2030%3B%0A%20%20const%20SCROLL_ROUNDS_BEFORE_GIVING_UP%20%3D%203%3B%0A%20%20const%20WAIT_AFTER_ACTION_MS%20%3D%201500%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-scraper-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20el.textContent%20%3D%20%27CouponBunch%20scraper%20starting%E2%80%A6%27%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20setStatus%28overlay%2C%20text%29%20%7B%0A%20%20%20%20overlay.textContent%20%3D%20text%3B%0A%20%20%7D%0A%0A%20%20function%20sleep%28ms%29%20%7B%0A%20%20%20%20return%20new%20Promise%28%28resolve%29%20%3D%3E%20setTimeout%28resolve%2C%20ms%29%29%3B%0A%20%20%7D%0A%0A%20%20function%20extractIdFromHref%28href%29%20%7B%0A%20%20%20%20const%20m%20%3D%20href.match%28/coupon-detail%5C/%28%5Cd%2B%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20m%5B1%5D%20%3A%20href%3B%0A%20%20%7D%0A%0A%20%20function%20parseCardsFromDOM%28%29%20%7B%0A%20%20%20%20const%20links%20%3D%20Array.from%28document.querySelectorAll%28CARD_SELECTOR%29%29%3B%0A%20%20%20%20const%20coupons%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20link%20of%20links%29%20%7B%0A%20%20%20%20%20%20const%20title%20%3D%20%28link.textContent%20%7C%7C%20%27%27%29.trim%28%29%3B%0A%20%20%20%20%20%20const%20href%20%3D%20link.getAttribute%28%27href%27%29%20%7C%7C%20%27%27%3B%0A%20%20%20%20%20%20if%20%28%21title%20%7C%7C%20%21href%29%20continue%3B%0A%0A%20%20%20%20%20%20let%20card%20%3D%20link.parentElement%3B%0A%20%20%20%20%20%20for%20%28let%20i%20%3D%200%3B%20i%20%3C%204%20%26%26%20card%20%26%26%20card.parentElement%3B%20i%2B%2B%29%20%7B%0A%20%20%20%20%20%20%20%20card%20%3D%20card.parentElement%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20const%20cardText%20%3D%20card%20%3F%20card.textContent.replace%28/%5Cs%2B/g%2C%20%27%20%27%29.trim%28%29%20%3A%20%27%27%3B%0A%0A%20%20%20%20%20%20const%20valueMatch%20%3D%20cardText.match%28%0A%20%20%20%20%20%20%20%20/%28%5C%24%5Cd%2B%28%5C.%5Cd%7B2%7D%29%3F%5Cs%2Boff%28%5Cs%2B%5Cd%2B%29%3F%7C%5Cd%2B%25%5Cs%2Boff%7C%5Cd%2B%C2%A2%5Cs%2Boff%28%5Cs%2B%5Cd%2B%29%3F%7CCombo%20Loco%7C%5Cd%2B%5Cs%2Bfor%5Cs%2B%5C%24%5Cd%2B%29/%0A%20%20%20%20%20%20%29%3B%0A%20%20%20%20%20%20const%20expiresMatch%20%3D%20cardText.match%28/Expires%5Cs%2B%5B%5Cw/%5D%2B/%29%3B%0A%20%20%20%20%20%20const%20limit%20%3D%20cardText.includes%28%27Limit%201%20per%20customer%27%29%20%3F%20%27Limit%201%20per%20customer%27%20%3A%20%27Unlimited%20use%27%3B%0A%20%20%20%20%20%20const%20fullUrl%20%3D%20href.startsWith%28%27/%27%29%20%3F%20%27https%3A//www.heb.com%27%20%2B%20href%20%3A%20href%3B%0A%0A%20%20%20%20%20%20coupons.push%28%7B%0A%20%20%20%20%20%20%20%20id%3A%20extractIdFromHref%28href%29%2C%0A%20%20%20%20%20%20%20%20value%3A%20valueMatch%20%3F%20valueMatch%5B0%5D%20%3A%20%27%27%2C%0A%20%20%20%20%20%20%20%20description%3A%20title%2C%0A%20%20%20%20%20%20%20%20expires%3A%20expiresMatch%20%3F%20expiresMatch%5B0%5D.replace%28%27Expires%20%27%2C%20%27%27%29%20%3A%20%27%27%2C%0A%20%20%20%20%20%20%20%20limit%2C%0A%20%20%20%20%20%20%20%20url%3A%20fullUrl%2C%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20const%20seen%20%3D%20new%20Set%28%29%3B%0A%20%20%20%20return%20coupons.filter%28%28c%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20if%20%28seen.has%28c.id%29%29%20return%20false%3B%0A%20%20%20%20%20%20seen.add%28c.id%29%3B%0A%20%20%20%20%20%20return%20true%3B%0A%20%20%20%20%7D%29%3B%0A%20%20%7D%0A%0A%20%20function%20findNextControl%28%29%20%7B%0A%20%20%20%20const%20candidates%20%3D%20Array.from%28document.querySelectorAll%28%27a%2C%20button%27%29%29.filter%28%28el%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20const%20text%20%3D%20%28el.textContent%20%7C%7C%20%27%27%29.trim%28%29.toLowerCase%28%29%3B%0A%20%20%20%20%20%20return%20text%20%3D%3D%3D%20%27next%27%20%7C%7C%20text%20%3D%3D%3D%20%27next%20page%27%3B%0A%20%20%20%20%7D%29%3B%0A%20%20%20%20return%20candidates.find%28%28el%29%20%3D%3E%20el.offsetParent%20%21%3D%3D%20null%29%20%7C%7C%20null%3B%20//%20visible%20only%0A%20%20%7D%0A%0A%20%20async%20function%20scrollAndWaitForGrowth%28previousCount%29%20%7B%0A%20%20%20%20for%20%28let%20i%20%3D%200%3B%20i%20%3C%20SCROLL_ROUNDS_BEFORE_GIVING_UP%3B%20i%2B%2B%29%20%7B%0A%20%20%20%20%20%20window.scrollTo%280%2C%20document.body.scrollHeight%29%3B%0A%20%20%20%20%20%20await%20sleep%281200%29%3B%0A%20%20%20%20%20%20const%20count%20%3D%20document.querySelectorAll%28CARD_SELECTOR%29.length%3B%0A%20%20%20%20%20%20if%20%28count%20%3E%20previousCount%29%20return%20count%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20document.querySelectorAll%28CARD_SELECTOR%29.length%3B%0A%20%20%7D%0A%0A%20%20function%20downloadJSON%28filename%2C%20data%29%20%7B%0A%20%20%20%20const%20blob%20%3D%20new%20Blob%28%5BJSON.stringify%28data%2C%20null%2C%202%29%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20%20%20a.href%20%3D%20url%3B%0A%20%20%20%20a.download%20%3D%20filename%3B%0A%20%20%20%20document.body.appendChild%28a%29%3B%0A%20%20%20%20a.click%28%29%3B%0A%20%20%20%20a.remove%28%29%3B%0A%20%20%20%20URL.revokeObjectURL%28url%29%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%0A%20%20if%20%28%21location.hostname.endsWith%28%27heb.com%27%29%29%20%7B%0A%20%20%20%20setStatus%28overlay%2C%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20a%20heb.com%20coupon%20page%2C%20not%20here.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20let%20allCoupons%20%3D%20%5B%5D%3B%0A%20%20const%20byId%20%3D%20new%20Map%28%29%3B%0A%20%20let%20pagesWalked%20%3D%200%3B%0A%0A%20%20for%20%28let%20pageNum%20%3D%201%3B%20pageNum%20%3C%3D%20MAX_PAGES%3B%20pageNum%2B%2B%29%20%7B%0A%20%20%20%20pagesWalked%20%3D%20pageNum%3B%0A%20%20%20%20const%20pageCoupons%20%3D%20parseCardsFromDOM%28%29%3B%0A%0A%20%20%20%20if%20%28pageNum%20%3D%3D%3D%201%20%26%26%20pageCoupons.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20%20%20setStatus%28%0A%20%20%20%20%20%20%20%20overlay%2C%0A%20%20%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20coupon%20cards%20found%20on%20this%20page.%20Make%20sure%20you%5C%27re%20on%20the%20%27%20%2B%0A%20%20%20%20%20%20%20%20%20%20%27All%20Coupons%20page%20and%20it%20has%20finished%20loading%2C%20then%20try%20again.%27%0A%20%20%20%20%20%20%29%3B%0A%20%20%20%20%20%20return%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20for%20%28const%20c%20of%20pageCoupons%29%20byId.set%28c.id%2C%20c%29%3B%0A%20%20%20%20setStatus%28overlay%2C%20%60Page%20%24%7BpageNum%7D%20%E2%80%94%20%24%7BbyId.size%7D%20coupons%20found%20so%20far%E2%80%A6%60%29%3B%0A%0A%20%20%20%20const%20nextControl%20%3D%20findNextControl%28%29%3B%0A%20%20%20%20if%20%28nextControl%29%20%7B%0A%20%20%20%20%20%20nextControl.click%28%29%3B%0A%20%20%20%20%20%20await%20sleep%28WAIT_AFTER_ACTION_MS%29%3B%0A%20%20%20%20%20%20continue%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20const%20currentCount%20%3D%20document.querySelectorAll%28CARD_SELECTOR%29.length%3B%0A%20%20%20%20const%20grownCount%20%3D%20await%20scrollAndWaitForGrowth%28currentCount%29%3B%0A%20%20%20%20if%20%28grownCount%20%3C%3D%20currentCount%29%20%7B%0A%20%20%20%20%20%20setStatus%28overlay%2C%20%60Reached%20the%20end%20%E2%80%94%20%24%7BbyId.size%7D%20coupons%20total.%20Saving%20file%E2%80%A6%60%29%3B%0A%20%20%20%20%20%20break%3B%0A%20%20%20%20%7D%0A%20%20%7D%0A%0A%20%20allCoupons%20%3D%20Array.from%28byId.values%28%29%29%3B%0A%0A%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20source_url%3A%20location.href%2C%0A%20%20%20%20pages_scraped%3A%20pagesWalked%2C%0A%20%20%20%20coupons%3A%20allCoupons%2C%0A%20%20%7D%3B%0A%0A%20%20downloadJSON%28%27heb-coupons-raw.json%27%2C%20payload%29%3B%0A%20%20setStatus%28%0A%20%20%20%20overlay%2C%0A%20%20%20%20%60%E2%9C%85%20Done%21%20%24%7BallCoupons.length%7D%20coupons%20saved%20to%20heb-coupons-raw.json.%5Cn%5Cn%60%20%2B%0A%20%20%20%20%20%20%27Now%20run%3A%20python%20tools/import_coupons.py%27%0A%20%20%29%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20overlay.remove%28%29%2C%2015000%29%3B%0A%7D%29%28%29%3B%0A">📥 Scrape H-E-B Coupons</a> ← drag this to your bookmarks bar</p>
+  <ol class="steps">
+    <li>Go to the page above, logged in.</li>
+    <li>Click the bookmark. Watch the on-page progress box.</li>
+    <li>A file downloads automatically to your Downloads folder.</li>
+    <li>Run <code>python tools/import_coupons.py</code> and follow the prompt.</li>
+  </ol>
+  <details>
+    <summary>Bookmark won't drag, or your browser strips javascript: links? Use the console instead.</summary>
+    <p>Open DevTools (F12) on the page above, go to the Console tab, paste the script below, and press Enter.</p>
+    <pre><code>/**
+ * CouponBunch coupon-scraping bookmarklet — source (readable) version.
+ *
+ * Run this on H-E-B&#x27;s &quot;All coupons&quot; page (heb.com/digital-coupon/...) while
+ * logged in. It reads the page&#x27;s own rendered DOM (not a fetch from
+ * scratch), walking through pagination the same way a human would — click
+ * &quot;Next&quot; if present, otherwise scroll for infinite-scroll pages — so it
+ * works regardless of which pagination style H-E-B is using this week, and
+ * it inherits your real browser session/cookies, which is what lets it get
+ * past H-E-B&#x27;s bot protection where server-side scraping gets blocked.
+ *
+ * Usage: see tools/bookmarklet/README.md. In short — either drag the
+ * generated bookmarklet link (tools/bookmarklet/README.md, built by
+ * build.py) to your bookmarks bar and click it on the coupon page, or paste
+ * this file&#x27;s contents directly into the browser DevTools Console on that
+ * page (identical effect).
+ *
+ * When it finishes, it downloads &quot;heb-coupons-raw.json&quot; to your Downloads
+ * folder. Then run: python tools/import_coupons.py
+ */
+(async () =&gt; {
+  const CARD_SELECTOR = &#x27;a[href*=&quot;/digital-coupon/coupon-detail/&quot;]&#x27;;
+  const MAX_PAGES = 30;
+  const SCROLL_ROUNDS_BEFORE_GIVING_UP = 3;
+  const WAIT_AFTER_ACTION_MS = 1500;
+
+  function makeOverlay() {
+    const el = document.createElement(&#x27;div&#x27;);
+    el.id = &#x27;coupon-bunch-scraper-overlay&#x27;;
+    el.style.cssText = [
+      &#x27;position:fixed&#x27;, &#x27;top:16px&#x27;, &#x27;right:16px&#x27;, &#x27;z-index:999999&#x27;,
+      &#x27;background:#1b1b1b&#x27;, &#x27;color:#fff&#x27;, &#x27;font:13px/1.4 -apple-system,sans-serif&#x27;,
+      &#x27;padding:12px 16px&#x27;, &#x27;border-radius:10px&#x27;, &#x27;box-shadow:0 4px 16px rgba(0,0,0,.3)&#x27;,
+      &#x27;max-width:280px&#x27;,
+    ].join(&#x27;;&#x27;);
+    el.textContent = &#x27;CouponBunch scraper starting…&#x27;;
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function setStatus(overlay, text) {
+    overlay.textContent = text;
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) =&gt; setTimeout(resolve, ms));
+  }
+
+  function extractIdFromHref(href) {
+    const m = href.match(/coupon-detail\/(\d+)/);
+    return m ? m[1] : href;
+  }
+
+  function parseCardsFromDOM() {
+    const links = Array.from(document.querySelectorAll(CARD_SELECTOR));
+    const coupons = [];
+
+    for (const link of links) {
+      const title = (link.textContent || &#x27;&#x27;).trim();
+      const href = link.getAttribute(&#x27;href&#x27;) || &#x27;&#x27;;
+      if (!title || !href) continue;
+
+      let card = link.parentElement;
+      for (let i = 0; i &lt; 4 &amp;&amp; card &amp;&amp; card.parentElement; i++) {
+        card = card.parentElement;
+      }
+      const cardText = card ? card.textContent.replace(/\s+/g, &#x27; &#x27;).trim() : &#x27;&#x27;;
+
+      const valueMatch = cardText.match(
+        /(\$\d+(\.\d{2})?\s+off(\s+\d+)?|\d+%\s+off|\d+¢\s+off(\s+\d+)?|Combo Loco|\d+\s+for\s+\$\d+)/
+      );
+      const expiresMatch = cardText.match(/Expires\s+[\w/]+/);
+      const limit = cardText.includes(&#x27;Limit 1 per customer&#x27;) ? &#x27;Limit 1 per customer&#x27; : &#x27;Unlimited use&#x27;;
+      const fullUrl = href.startsWith(&#x27;/&#x27;) ? &#x27;https://www.heb.com&#x27; + href : href;
+
+      coupons.push({
+        id: extractIdFromHref(href),
+        value: valueMatch ? valueMatch[0] : &#x27;&#x27;,
+        description: title,
+        expires: expiresMatch ? expiresMatch[0].replace(&#x27;Expires &#x27;, &#x27;&#x27;) : &#x27;&#x27;,
+        limit,
+        url: fullUrl,
+      });
+    }
+
+    const seen = new Set();
+    return coupons.filter((c) =&gt; {
+      if (seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+  }
+
+  function findNextControl() {
+    const candidates = Array.from(document.querySelectorAll(&#x27;a, button&#x27;)).filter((el) =&gt; {
+      const text = (el.textContent || &#x27;&#x27;).trim().toLowerCase();
+      return text === &#x27;next&#x27; || text === &#x27;next page&#x27;;
+    });
+    return candidates.find((el) =&gt; el.offsetParent !== null) || null; // visible only
+  }
+
+  async function scrollAndWaitForGrowth(previousCount) {
+    for (let i = 0; i &lt; SCROLL_ROUNDS_BEFORE_GIVING_UP; i++) {
+      window.scrollTo(0, document.body.scrollHeight);
+      await sleep(1200);
+      const count = document.querySelectorAll(CARD_SELECTOR).length;
+      if (count &gt; previousCount) return count;
+    }
+    return document.querySelectorAll(CARD_SELECTOR).length;
+  }
+
+  function downloadJSON(filename, data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: &#x27;application/json&#x27; });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement(&#x27;a&#x27;);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // --- main ---
+  const overlay = makeOverlay();
+
+  if (!location.hostname.endsWith(&#x27;heb.com&#x27;)) {
+    setStatus(overlay, &#x27;⚠️ Run this on a heb.com coupon page, not here.&#x27;);
+    return;
+  }
+
+  let allCoupons = [];
+  const byId = new Map();
+  let pagesWalked = 0;
+
+  for (let pageNum = 1; pageNum &lt;= MAX_PAGES; pageNum++) {
+    pagesWalked = pageNum;
+    const pageCoupons = parseCardsFromDOM();
+
+    if (pageNum === 1 &amp;&amp; pageCoupons.length === 0) {
+      setStatus(
+        overlay,
+        &#x27;⚠️ No coupon cards found on this page. Make sure you\&#x27;re on the &#x27; +
+          &#x27;All Coupons page and it has finished loading, then try again.&#x27;
+      );
+      return;
+    }
+
+    for (const c of pageCoupons) byId.set(c.id, c);
+    setStatus(overlay, `Page ${pageNum} — ${byId.size} coupons found so far…`);
+
+    const nextControl = findNextControl();
+    if (nextControl) {
+      nextControl.click();
+      await sleep(WAIT_AFTER_ACTION_MS);
+      continue;
+    }
+
+    const currentCount = document.querySelectorAll(CARD_SELECTOR).length;
+    const grownCount = await scrollAndWaitForGrowth(currentCount);
+    if (grownCount &lt;= currentCount) {
+      setStatus(overlay, `Reached the end — ${byId.size} coupons total. Saving file…`);
+      break;
+    }
+  }
+
+  allCoupons = Array.from(byId.values());
+
+  const payload = {
+    scraped_at: new Date().toISOString(),
+    source: &#x27;bookmarklet&#x27;,
+    source_url: location.href,
+    pages_scraped: pagesWalked,
+    coupons: allCoupons,
+  };
+
+  downloadJSON(&#x27;heb-coupons-raw.json&#x27;, payload);
+  setStatus(
+    overlay,
+    `✅ Done! ${allCoupons.length} coupons saved to heb-coupons-raw.json.\n\n` +
+      &#x27;Now run: python tools/import_coupons.py&#x27;
+  );
+  setTimeout(() =&gt; overlay.remove(), 15000);
+})();
+</code></pre>
+  </details>
+</div>
+
+<div class="bookmarklet-card">
+  <h2>💲 Scrape H-E-B Prices</h2>
+  <p class="run-on">Run on: an H-E-B product search-results page, while logged in with your store selected</p>
+  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20price-scraping%20bookmarklet%20%E2%80%94%20source%20%28readable%29%20version.%0A%20%2A%0A%20%2A%20Unlike%20the%20coupon%20scraper%2C%20this%20one%27s%20DOM%20selectors%20are%20a%20best%20guess%20%E2%80%94%0A%20%2A%20this%20sandbox%20has%20no%20network%20access%20to%20heb.com%20to%20verify%20real%20product-card%0A%20%2A%20markup%20against.%20If%20it%20finds%20zero%20products%2C%20open%20DevTools%2C%20inspect%20one%0A%20%2A%20product%20card%20on%20a%20real%20H-E-B%20search-results%20page%2C%20and%20add%20its%0A%20%2A%20container/name/price%20selectors%20to%20the%20CANDIDATE_%2A%20arrays%20below.%20Then%0A%20%2A%20re-run%20%60python%20tools/bookmarklet/build.py%60.%0A%20%2A%0A%20%2A%20Usage%3A%20search%20for%20a%20brand/product%20on%20heb.com%20%28logged%20in%2C%20store%20selected%29%2C%0A%20%2A%20click%20this%20bookmark%20%E2%80%94%20it%20captures%20whatever%20product%20cards%20are%20visible%20and%0A%20%2A%20adds%20them%20to%20a%20running%20batch%20%28kept%20in%20sessionStorage%2C%20so%20you%20can%20repeat%0A%20%2A%20this%20for%20several%20brands%20before%20downloading%20once%29.%20An%20on-page%20overlay%0A%20%2A%20shows%20the%20running%20count%20and%20has%20%22Download%20all%22%20/%20%22Clear%22%20buttons.%0A%20%2A/%0A%28%28%29%20%3D%3E%20%7B%0A%20%20const%20CAPTURE_KEY%20%3D%20%27coupon-bunch-price-capture%27%3B%0A%0A%20%20//%20Best-guess%20selectors%20for%20a%20product-card%20container%20on%20an%20H-E-B%20search%0A%20%20//%20results%20page.%20Tried%20in%20order%3B%20the%20first%20one%20that%20matches%20multiple%0A%20%20//%20elements%20is%20used.%20EDIT%20THIS%20if%20it%20finds%200%20products%20%E2%80%94%20inspect%20a%20real%0A%20%20//%20product%20card%20and%20add%20its%20selector%20here.%0A%20%20const%20CANDIDATE_CARD_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%2A%3D%22product-card%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-qa%2A%3D%22product%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22ProductCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22product-card%22%5D%27%2C%0A%20%20%20%20%27li%5Bclass%2A%3D%22product%22%5D%27%2C%0A%20%20%20%20%27article%5Bclass%2A%3D%22product%22%5D%27%2C%0A%20%20%5D%3B%0A%0A%20%20//%20Within%20a%20card%2C%20best-guess%20selectors%20for%20the%20name%20and%20price%20text.%20Falls%0A%20%20//%20back%20to%20regex-scanning%20the%20card%27s%20full%20text%20if%20none%20of%20these%20match.%0A%20%20const%20CANDIDATE_NAME_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%2A%3D%22product-name%22%5D%27%2C%20%27%5Bdata-testid%2A%3D%22title%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22ProductName%22%5D%27%2C%20%27%5Bclass%2A%3D%22product-name%22%5D%27%2C%20%27%5Bclass%2A%3D%22title%22%5D%27%2C%20%27h3%27%2C%20%27h2%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_PRICE_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%2A%3D%22price%22%5D%27%2C%20%27%5Bclass%2A%3D%22Price%22%5D%27%2C%20%27%5Bclass%2A%3D%22price%22%5D%27%2C%0A%20%20%5D%3B%0A%0A%20%20const%20CANDIDATE_STORE_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%2A%3D%22store-name%22%5D%27%2C%20%27%5Bdata-testid%2A%3D%22selected-store%22%5D%27%2C%20%27%5Bclass%2A%3D%22StoreName%22%5D%27%2C%0A%20%20%5D%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-price-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20loadBatch%28%29%20%7B%0A%20%20%20%20try%20%7B%0A%20%20%20%20%20%20return%20JSON.parse%28sessionStorage.getItem%28CAPTURE_KEY%29%20%7C%7C%20%27%7B%22batches%22%3A%5B%5D%7D%27%29%3B%0A%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20return%20%7B%20batches%3A%20%5B%5D%20%7D%3B%0A%20%20%20%20%7D%0A%20%20%7D%0A%0A%20%20function%20saveBatch%28data%29%20%7B%0A%20%20%20%20sessionStorage.setItem%28CAPTURE_KEY%2C%20JSON.stringify%28data%29%29%3B%0A%20%20%7D%0A%0A%20%20function%20firstMatching%28selectors%2C%20root%20%3D%20document%29%20%7B%0A%20%20%20%20for%20%28const%20sel%20of%20selectors%29%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20const%20els%20%3D%20root.querySelectorAll%28sel%29%3B%0A%20%20%20%20%20%20%20%20if%20%28els.length%20%3E%200%29%20return%20Array.from%28els%29%3B%0A%20%20%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%20%20//%20invalid%20selector%20for%20this%20browser%20%E2%80%94%20skip%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20%5B%5D%3B%0A%20%20%7D%0A%0A%20%20function%20extractPrice%28text%29%20%7B%0A%20%20%20%20const%20m%20%3D%20text.match%28/%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20parseFloat%28m%5B1%5D%29%20%3A%20null%3B%0A%20%20%7D%0A%0A%20%20function%20guessSearchTerm%28%29%20%7B%0A%20%20%20%20const%20input%20%3D%20document.querySelector%28%27input%5Btype%3D%22search%22%5D%2C%20input%5Bname%2A%3D%22search%22%20i%5D%2C%20input%5Bplaceholder%2A%3D%22search%22%20i%5D%27%29%3B%0A%20%20%20%20if%20%28input%20%26%26%20input.value%29%20return%20input.value.trim%28%29%3B%0A%20%20%20%20const%20url%20%3D%20new%20URL%28location.href%29%3B%0A%20%20%20%20for%20%28const%20key%20of%20%5B%27q%27%2C%20%27query%27%2C%20%27search%27%2C%20%27searchTerm%27%5D%29%20%7B%0A%20%20%20%20%20%20if%20%28url.searchParams.get%28key%29%29%20return%20url.searchParams.get%28key%29%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20null%3B%0A%20%20%7D%0A%0A%20%20function%20guessStoreId%28%29%20%7B%0A%20%20%20%20const%20els%20%3D%20firstMatching%28CANDIDATE_STORE_SELECTORS%29%3B%0A%20%20%20%20if%20%28els.length%29%20return%20els%5B0%5D.textContent.trim%28%29%3B%0A%20%20%20%20return%20null%3B%0A%20%20%7D%0A%0A%20%20function%20scrapeCards%28%29%20%7B%0A%20%20%20%20const%20cards%20%3D%20firstMatching%28CANDIDATE_CARD_SELECTORS%29%3B%0A%20%20%20%20const%20products%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20card%20of%20cards%29%20%7B%0A%20%20%20%20%20%20const%20nameEl%20%3D%20firstMatching%28CANDIDATE_NAME_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20priceEl%20%3D%20firstMatching%28CANDIDATE_PRICE_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20cardText%20%3D%20card.textContent.replace%28/%5Cs%2B/g%2C%20%27%20%27%29.trim%28%29%3B%0A%0A%20%20%20%20%20%20const%20name%20%3D%20nameEl%20%3F%20nameEl.textContent.trim%28%29%20%3A%20cardText.slice%280%2C%2080%29%3B%0A%20%20%20%20%20%20const%20price%20%3D%20priceEl%20%3F%20extractPrice%28priceEl.textContent%29%20%3A%20extractPrice%28cardText%29%3B%0A%0A%20%20%20%20%20%20if%20%28name%20%26%26%20price%20%21%3D%20null%29%20%7B%0A%20%20%20%20%20%20%20%20products.push%28%7B%20name%2C%20price%20%7D%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20products%3B%0A%20%20%7D%0A%0A%20%20function%20render%28overlay%2C%20batchData%29%20%7B%0A%20%20%20%20const%20totalProducts%20%3D%20batchData.batches.reduce%28%28s%2C%20b%29%20%3D%3E%20s%20%2B%20b.products.length%2C%200%29%3B%0A%20%20%20%20overlay.innerHTML%20%3D%20%60%0A%20%20%20%20%20%20%3Cdiv%20style%3D%22margin-bottom%3A8px%3B%22%3E%F0%9F%92%B2%20%3Cstrong%3E%24%7BtotalProducts%7D%3C/strong%3E%20product%24%7BtotalProducts%20%3D%3D%3D%201%20%3F%20%27%27%20%3A%20%27s%27%7D%20captured%20across%20%24%7BbatchData.batches.length%7D%20search%24%7BbatchData.batches.length%20%3D%3D%3D%201%20%3F%20%27%27%20%3A%20%27es%27%7D.%3C/div%3E%0A%20%20%20%20%20%20%3Cdiv%20style%3D%22font-size%3A11px%3B%20opacity%3A.75%3B%20margin-bottom%3A8px%3B%22%3ESearch%20another%20brand%20and%20click%20this%20bookmark%20again%2C%20or%20download%20now.%3C/div%3E%0A%20%20%20%20%20%20%3Cbutton%20id%3D%22cb-price-download%22%20style%3D%22background%3A%23d5121e%3Bcolor%3A%23fff%3Bborder%3A0%3Bpadding%3A6px%2012px%3Bborder-radius%3A6px%3Bfont-weight%3A600%3Bcursor%3Apointer%3Bmargin-right%3A6px%3B%22%3EDownload%20all%3C/button%3E%0A%20%20%20%20%20%20%3Cbutton%20id%3D%22cb-price-clear%22%20style%3D%22background%3Atransparent%3Bcolor%3A%23fff%3Bborder%3A1px%20solid%20%23555%3Bpadding%3A6px%2010px%3Bborder-radius%3A6px%3Bcursor%3Apointer%3B%22%3EClear%3C/button%3E%0A%20%20%20%20%60%3B%0A%20%20%20%20overlay.querySelector%28%27%23cb-price-download%27%29.onclick%20%3D%20%28%29%20%3D%3E%20downloadAll%28batchData%29%3B%0A%20%20%20%20overlay.querySelector%28%27%23cb-price-clear%27%29.onclick%20%3D%20%28%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20sessionStorage.removeItem%28CAPTURE_KEY%29%3B%0A%20%20%20%20%20%20overlay.remove%28%29%3B%0A%20%20%20%20%7D%3B%0A%20%20%7D%0A%0A%20%20function%20downloadJSON%28filename%2C%20data%29%20%7B%0A%20%20%20%20const%20blob%20%3D%20new%20Blob%28%5BJSON.stringify%28data%2C%20null%2C%202%29%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20%20%20a.href%20%3D%20url%3B%0A%20%20%20%20a.download%20%3D%20filename%3B%0A%20%20%20%20document.body.appendChild%28a%29%3B%0A%20%20%20%20a.click%28%29%3B%0A%20%20%20%20a.remove%28%29%3B%0A%20%20%20%20URL.revokeObjectURL%28url%29%3B%0A%20%20%7D%0A%0A%20%20function%20downloadAll%28batchData%29%20%7B%0A%20%20%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20%20%20store_id%3A%20guessStoreId%28%29%2C%0A%20%20%20%20%20%20batches%3A%20batchData.batches%2C%0A%20%20%20%20%7D%3B%0A%20%20%20%20downloadJSON%28%27heb-prices-raw.json%27%2C%20payload%29%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20if%20%28%21location.hostname.endsWith%28%27heb.com%27%29%29%20%7B%0A%20%20%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20%20%20overlay.textContent%20%3D%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20a%20heb.com%20search-results%20page%2C%20not%20here.%27%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20products%20%3D%20scrapeCards%28%29%3B%0A%20%20const%20overlay%20%3D%20document.getElementById%28%27coupon-bunch-price-overlay%27%29%20%7C%7C%20makeOverlay%28%29%3B%0A%0A%20%20if%20%28products.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20overlay.innerHTML%20%3D%0A%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20products%20found%20on%20this%20page.%20The%20CSS%20selectors%20in%20scrape-prices.src.js%20%27%20%2B%0A%20%20%20%20%20%20%27likely%20need%20updating%20for%20H-E-B%5C%27s%20current%20markup%20%E2%80%94%20inspect%20a%20product%20card%20and%20%27%20%2B%0A%20%20%20%20%20%20%27edit%20CANDIDATE_CARD_SELECTORS%20/%20CANDIDATE_NAME_SELECTORS%20/%20CANDIDATE_PRICE_SELECTORS.%27%3B%0A%20%20%20%20console.warn%28%27%5BCouponBunch%5D%200%20products%20found.%20Selectors%20need%20updating%20%E2%80%94%20see%20scrape-prices.src.js.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20searchTerm%20%3D%20guessSearchTerm%28%29%20%7C%7C%20prompt%28%27Which%20brand/search%20term%20is%20this%20batch%20for%3F%27%2C%20%27%27%29%20%7C%7C%20%27unknown%27%3B%0A%20%20const%20batchData%20%3D%20loadBatch%28%29%3B%0A%20%20batchData.batches.push%28%7B%20search_term%3A%20searchTerm%2C%20products%20%7D%29%3B%0A%20%20saveBatch%28batchData%29%3B%0A%0A%20%20render%28overlay%2C%20batchData%29%3B%0A%7D%29%28%29%3B%0A">💲 Scrape H-E-B Prices</a> ← drag this to your bookmarks bar</p>
+  <ol class="steps">
+    <li>Go to the page above, logged in.</li>
+    <li>Click the bookmark. Watch the on-page progress box.</li>
+    <li>A file downloads automatically to your Downloads folder.</li>
+    <li>Run <code>python tools/import_prices.py</code> and follow the prompt.</li>
+  </ol>
+  <details>
+    <summary>Bookmark won't drag, or your browser strips javascript: links? Use the console instead.</summary>
+    <p>Open DevTools (F12) on the page above, go to the Console tab, paste the script below, and press Enter.</p>
+    <pre><code>/**
+ * CouponBunch price-scraping bookmarklet — source (readable) version.
+ *
+ * Unlike the coupon scraper, this one&#x27;s DOM selectors are a best guess —
+ * this sandbox has no network access to heb.com to verify real product-card
+ * markup against. If it finds zero products, open DevTools, inspect one
+ * product card on a real H-E-B search-results page, and add its
+ * container/name/price selectors to the CANDIDATE_* arrays below. Then
+ * re-run `python tools/bookmarklet/build.py`.
+ *
+ * Usage: search for a brand/product on heb.com (logged in, store selected),
+ * click this bookmark — it captures whatever product cards are visible and
+ * adds them to a running batch (kept in sessionStorage, so you can repeat
+ * this for several brands before downloading once). An on-page overlay
+ * shows the running count and has &quot;Download all&quot; / &quot;Clear&quot; buttons.
+ */
+(() =&gt; {
+  const CAPTURE_KEY = &#x27;coupon-bunch-price-capture&#x27;;
+
+  // Best-guess selectors for a product-card container on an H-E-B search
+  // results page. Tried in order; the first one that matches multiple
+  // elements is used. EDIT THIS if it finds 0 products — inspect a real
+  // product card and add its selector here.
+  const CANDIDATE_CARD_SELECTORS = [
+    &#x27;[data-testid*=&quot;product-card&quot;]&#x27;,
+    &#x27;[data-qa*=&quot;product&quot;]&#x27;,
+    &#x27;[class*=&quot;ProductCard&quot;]&#x27;,
+    &#x27;[class*=&quot;product-card&quot;]&#x27;,
+    &#x27;li[class*=&quot;product&quot;]&#x27;,
+    &#x27;article[class*=&quot;product&quot;]&#x27;,
+  ];
+
+  // Within a card, best-guess selectors for the name and price text. Falls
+  // back to regex-scanning the card&#x27;s full text if none of these match.
+  const CANDIDATE_NAME_SELECTORS = [
+    &#x27;[data-testid*=&quot;product-name&quot;]&#x27;, &#x27;[data-testid*=&quot;title&quot;]&#x27;,
+    &#x27;[class*=&quot;ProductName&quot;]&#x27;, &#x27;[class*=&quot;product-name&quot;]&#x27;, &#x27;[class*=&quot;title&quot;]&#x27;, &#x27;h3&#x27;, &#x27;h2&#x27;,
+  ];
+  const CANDIDATE_PRICE_SELECTORS = [
+    &#x27;[data-testid*=&quot;price&quot;]&#x27;, &#x27;[class*=&quot;Price&quot;]&#x27;, &#x27;[class*=&quot;price&quot;]&#x27;,
+  ];
+
+  const CANDIDATE_STORE_SELECTORS = [
+    &#x27;[data-testid*=&quot;store-name&quot;]&#x27;, &#x27;[data-testid*=&quot;selected-store&quot;]&#x27;, &#x27;[class*=&quot;StoreName&quot;]&#x27;,
+  ];
+
+  function makeOverlay() {
+    const el = document.createElement(&#x27;div&#x27;);
+    el.id = &#x27;coupon-bunch-price-overlay&#x27;;
+    el.style.cssText = [
+      &#x27;position:fixed&#x27;, &#x27;top:16px&#x27;, &#x27;right:16px&#x27;, &#x27;z-index:999999&#x27;,
+      &#x27;background:#1b1b1b&#x27;, &#x27;color:#fff&#x27;, &#x27;font:13px/1.4 -apple-system,sans-serif&#x27;,
+      &#x27;padding:12px 16px&#x27;, &#x27;border-radius:10px&#x27;, &#x27;box-shadow:0 4px 16px rgba(0,0,0,.3)&#x27;,
+      &#x27;max-width:280px&#x27;,
+    ].join(&#x27;;&#x27;);
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function loadBatch() {
+    try {
+      return JSON.parse(sessionStorage.getItem(CAPTURE_KEY) || &#x27;{&quot;batches&quot;:[]}&#x27;);
+    } catch (e) {
+      return { batches: [] };
+    }
+  }
+
+  function saveBatch(data) {
+    sessionStorage.setItem(CAPTURE_KEY, JSON.stringify(data));
+  }
+
+  function firstMatching(selectors, root = document) {
+    for (const sel of selectors) {
+      try {
+        const els = root.querySelectorAll(sel);
+        if (els.length &gt; 0) return Array.from(els);
+      } catch (e) {
+        // invalid selector for this browser — skip
+      }
+    }
+    return [];
+  }
+
+  function extractPrice(text) {
+    const m = text.match(/\$(\d+(?:\.\d{2})?)/);
+    return m ? parseFloat(m[1]) : null;
+  }
+
+  function guessSearchTerm() {
+    const input = document.querySelector(&#x27;input[type=&quot;search&quot;], input[name*=&quot;search&quot; i], input[placeholder*=&quot;search&quot; i]&#x27;);
+    if (input &amp;&amp; input.value) return input.value.trim();
+    const url = new URL(location.href);
+    for (const key of [&#x27;q&#x27;, &#x27;query&#x27;, &#x27;search&#x27;, &#x27;searchTerm&#x27;]) {
+      if (url.searchParams.get(key)) return url.searchParams.get(key);
+    }
+    return null;
+  }
+
+  function guessStoreId() {
+    const els = firstMatching(CANDIDATE_STORE_SELECTORS);
+    if (els.length) return els[0].textContent.trim();
+    return null;
+  }
+
+  function scrapeCards() {
+    const cards = firstMatching(CANDIDATE_CARD_SELECTORS);
+    const products = [];
+
+    for (const card of cards) {
+      const nameEl = firstMatching(CANDIDATE_NAME_SELECTORS, card)[0];
+      const priceEl = firstMatching(CANDIDATE_PRICE_SELECTORS, card)[0];
+      const cardText = card.textContent.replace(/\s+/g, &#x27; &#x27;).trim();
+
+      const name = nameEl ? nameEl.textContent.trim() : cardText.slice(0, 80);
+      const price = priceEl ? extractPrice(priceEl.textContent) : extractPrice(cardText);
+
+      if (name &amp;&amp; price != null) {
+        products.push({ name, price });
+      }
+    }
+    return products;
+  }
+
+  function render(overlay, batchData) {
+    const totalProducts = batchData.batches.reduce((s, b) =&gt; s + b.products.length, 0);
+    overlay.innerHTML = `
+      &lt;div style=&quot;margin-bottom:8px;&quot;&gt;💲 &lt;strong&gt;${totalProducts}&lt;/strong&gt; product${totalProducts === 1 ? &#x27;&#x27; : &#x27;s&#x27;} captured across ${batchData.batches.length} search${batchData.batches.length === 1 ? &#x27;&#x27; : &#x27;es&#x27;}.&lt;/div&gt;
+      &lt;div style=&quot;font-size:11px; opacity:.75; margin-bottom:8px;&quot;&gt;Search another brand and click this bookmark again, or download now.&lt;/div&gt;
+      &lt;button id=&quot;cb-price-download&quot; style=&quot;background:#d5121e;color:#fff;border:0;padding:6px 12px;border-radius:6px;font-weight:600;cursor:pointer;margin-right:6px;&quot;&gt;Download all&lt;/button&gt;
+      &lt;button id=&quot;cb-price-clear&quot; style=&quot;background:transparent;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:6px;cursor:pointer;&quot;&gt;Clear&lt;/button&gt;
+    `;
+    overlay.querySelector(&#x27;#cb-price-download&#x27;).onclick = () =&gt; downloadAll(batchData);
+    overlay.querySelector(&#x27;#cb-price-clear&#x27;).onclick = () =&gt; {
+      sessionStorage.removeItem(CAPTURE_KEY);
+      overlay.remove();
+    };
+  }
+
+  function downloadJSON(filename, data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: &#x27;application/json&#x27; });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement(&#x27;a&#x27;);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadAll(batchData) {
+    const payload = {
+      scraped_at: new Date().toISOString(),
+      source: &#x27;bookmarklet&#x27;,
+      store_id: guessStoreId(),
+      batches: batchData.batches,
+    };
+    downloadJSON(&#x27;heb-prices-raw.json&#x27;, payload);
+  }
+
+  // --- main ---
+  if (!location.hostname.endsWith(&#x27;heb.com&#x27;)) {
+    const overlay = makeOverlay();
+    overlay.textContent = &#x27;⚠️ Run this on a heb.com search-results page, not here.&#x27;;
+    return;
+  }
+
+  const products = scrapeCards();
+  const overlay = document.getElementById(&#x27;coupon-bunch-price-overlay&#x27;) || makeOverlay();
+
+  if (products.length === 0) {
+    overlay.innerHTML =
+      &#x27;⚠️ No products found on this page. The CSS selectors in scrape-prices.src.js &#x27; +
+      &#x27;likely need updating for H-E-B\&#x27;s current markup — inspect a product card and &#x27; +
+      &#x27;edit CANDIDATE_CARD_SELECTORS / CANDIDATE_NAME_SELECTORS / CANDIDATE_PRICE_SELECTORS.&#x27;;
+    console.warn(&#x27;[CouponBunch] 0 products found. Selectors need updating — see scrape-prices.src.js.&#x27;);
+    return;
+  }
+
+  const searchTerm = guessSearchTerm() || prompt(&#x27;Which brand/search term is this batch for?&#x27;, &#x27;&#x27;) || &#x27;unknown&#x27;;
+  const batchData = loadBatch();
+  batchData.batches.push({ search_term: searchTerm, products });
+  saveBatch(batchData);
+
+  render(overlay, batchData);
+})();
+</code></pre>
+  </details>
+</div>
+
+
+<p style="color:#6b6b6b; font-size:0.85rem; margin-top:32px;">
+  Regenerate this page with <code>python tools/bookmarklet/build.py</code> after editing
+  a <code>.src.js</code> file.
+</p>
+</body>
+</html>

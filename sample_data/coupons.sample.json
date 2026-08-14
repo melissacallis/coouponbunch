@@ -1,0 +1,123 @@
+{
+  "updated_at": "2026-08-10T08:00:00+00:00",
+  "source_url": "https://www.heb.com/digital-coupon/coupon-selection/all-coupons?pageName=all-coupons",
+  "source": "bookmarklet",
+  "total_coupons": 15,
+  "last_scrape_status": "success",
+  "featured_stackable_candidates": [
+    {
+      "id": "90000001",
+      "value": "$5 off $25 (select items)",
+      "description": "$5 off your basket when you buy $25 of Dove, Dove Men+Care, AXE, Degree, TRESemme, SheaMoisture, Vaseline, Olly, or Schmidt's Personal Cleansing, Deodorant, Lotion, Hair Care, Face Care, or Hand Soap items (excludes trial/travel)",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000001"
+    },
+    {
+      "id": "90000002",
+      "value": "$5 off $20 (select items)",
+      "description": "$5 off your basket when you buy $20 of Kodiak items",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000002"
+    },
+    {
+      "id": "90000003",
+      "value": "$3 off $15 (select items)",
+      "description": "$3 off your basket when you buy $15 of Nature's Truth Vitamins, Supplements, or Probiotics",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000003"
+    }
+  ],
+  "general_coupons": [
+    {
+      "id": "90000010",
+      "value": "$1.50 off",
+      "description": "$1.50 off any Dove Body Wash, 22 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000010"
+    },
+    {
+      "id": "90000011",
+      "value": "$1 off",
+      "description": "$1 off AXE Deodorant or Body Spray, assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000011"
+    },
+    {
+      "id": "90000012",
+      "value": "$1.50 off",
+      "description": "$1.50 off Old Spice Deodorant, assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000012"
+    },
+    {
+      "id": "90000013",
+      "value": "$2 off",
+      "description": "$2 off Kodiak Power Cakes Flapjack Mix, 20 - 22 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000013"
+    },
+    {
+      "id": "90000014",
+      "value": "$1 off",
+      "description": "$1 off Nature's Truth Vitamin D3 Gummies, 90 ct.",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000014"
+    },
+    {
+      "id": "90000015",
+      "value": "20% off",
+      "description": "20% off any Nature's Bounty Vitamins or Supplements",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000015"
+    },
+    {
+      "id": "90000016",
+      "value": "$1 off",
+      "description": "$1 off H-E-B Gala Apples, 3 lb. bag",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000016"
+    },
+    {
+      "id": "90000017",
+      "value": "Combo Loco",
+      "description": "Buy 2 Post Family Size Cereal, 16.5 - 19.5 oz. get FREE Peter Pan Peanut Butter, 16.3 oz.",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000017"
+    },
+    {
+      "id": "90000018",
+      "value": "$1.50 off 2",
+      "description": "$1.50 off 2 Quaker Oat Shake & Go, 1.5 oz., assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000018"
+    },
+    {
+      "id": "90000019",
+      "value": "$1.50 off",
+      "description": "$1.50 off any KIND Snack Bars or Granola Clusters",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000019"
+    },
+    {
+      "id": "90000020",
+      "value": "$1 off",
+      "description": "$1 off Schmidt's Natural Deodorant, assorted varieties",
+      "expires": "8/25/2026",
+      "limit": "Unlimited use",
+      "url": "https://www.heb.com/digital-coupon/coupon-detail/90000020"
+    }
+  ]
+}
