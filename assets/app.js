@@ -10,8 +10,10 @@
 let DATA = { featured_stackable_candidates: [], general_coupons: [] };
 let PRICES = { products: {} };
 let PRICE_OVERRIDES = {}; // { [couponId]: number }, persisted to localStorage
+let ITEM_NOTES = {}; // { [couponId]: [{id, name, price, addedAt}] }, persisted to localStorage
 
 const PRICE_OVERRIDES_KEY = 'heb-price-overrides';
+const ITEM_NOTES_KEY = 'heb-item-notes';
 
 /* ============================== Engine ================================ */
 
@@ -159,6 +161,28 @@ function findPriceForCoupon(general, prices) {
   return null;
 }
 
+// A single manufacturer coupon often covers several distinct products (e.g.
+// "AXE Deodorant or Body Spray, assorted varieties" spans many SKUs, each
+// with its own price). Rather than guess, this collects every product the
+// site actually knows about for that coupon: anything the price bookmarklet
+// scraped (prices.json), plus anything the visitor has manually logged after
+// checking heb.com themselves (ITEM_NOTES, saved forever in their browser —
+// so that lookup only ever has to happen once per coupon, not every visit).
+function itemsForCoupon(coupon, prices) {
+  const items = [];
+  const brands = findBrandsInText(coupon.description || '');
+  brands.forEach((brand) => {
+    const entries = (prices && prices.products && prices.products[brand]) || [];
+    entries.forEach((e, i) => {
+      items.push({ id: `scraped-${brand}-${i}`, name: e.name, price: e.price, source: 'scraped' });
+    });
+  });
+  (ITEM_NOTES[coupon.id] || []).forEach((n) => {
+    items.push({ id: n.id, name: n.name, price: n.price, source: 'manual' });
+  });
+  return items;
+}
+
 function getEffectivePrice(coupon, priceMatch) {
   if (Object.prototype.hasOwnProperty.call(PRICE_OVERRIDES, coupon.id)) {
     return PRICE_OVERRIDES[coupon.id];
@@ -259,13 +283,6 @@ function couponImageUrl(id) {
 let selectedFeaturedId = null;
 const checkedGeneralIds = new Set();
 
-// Side panel state: which coupon's heb.com page is currently framed, and
-// whether the panel is shown at all. Not persisted — resets to the featured
-// coupon's own page each time a new stack is opened.
-let panelUrl = null;
-let panelLabel = '';
-let panelVisible = true;
-
 function loadPriceOverrides() {
   try {
     PRICE_OVERRIDES = JSON.parse(localStorage.getItem(PRICE_OVERRIDES_KEY) || '{}');
@@ -281,6 +298,27 @@ function savePriceOverride(couponId, price) {
     PRICE_OVERRIDES[couponId] = price;
   }
   localStorage.setItem(PRICE_OVERRIDES_KEY, JSON.stringify(PRICE_OVERRIDES));
+}
+
+function loadItemNotes() {
+  try {
+    ITEM_NOTES = JSON.parse(localStorage.getItem(ITEM_NOTES_KEY) || '{}');
+  } catch (e) {
+    ITEM_NOTES = {};
+  }
+}
+
+function saveItemNote(couponId, name, price) {
+  const list = ITEM_NOTES[couponId] || (ITEM_NOTES[couponId] = []);
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  list.push({ id, name, price, addedAt: new Date().toISOString() });
+  localStorage.setItem(ITEM_NOTES_KEY, JSON.stringify(ITEM_NOTES));
+  return id;
+}
+
+function removeItemNote(couponId, itemId) {
+  ITEM_NOTES[couponId] = (ITEM_NOTES[couponId] || []).filter((i) => i.id !== itemId);
+  localStorage.setItem(ITEM_NOTES_KEY, JSON.stringify(ITEM_NOTES));
 }
 
 function renderHero() {
@@ -354,31 +392,57 @@ function matches(c, query) {
   return haystack.includes(query.toLowerCase());
 }
 
+function itemChipHTML(coupon, item) {
+  return `
+    <button type="button" class="item-chip" data-use-price="${item.price}" data-coupon-id="${escapeHTML(coupon.id)}"
+            title="Click to use this price">
+      <span class="item-chip-name">${escapeHTML(item.name)}</span>
+      <span class="item-chip-price">${formatMoney(item.price)}</span>
+      ${item.source === 'manual'
+        ? `<span class="item-chip-remove" data-remove-item="${escapeHTML(item.id)}" data-coupon-id="${escapeHTML(coupon.id)}" title="Remove">✕</span>`
+        : `<span class="item-chip-source" title="From the price bookmarklet">🔍</span>`}
+    </button>`;
+}
+
 function matchRowHTML(m) {
   const { coupon, tier, priceMatch, reasons } = m;
   const checked = checkedGeneralIds.has(coupon.id);
   const effectivePrice = getEffectivePrice(coupon, priceMatch);
   const badgeClass = effectivePrice != null ? 'price-verified' : tier;
   const badgeText = effectivePrice != null ? 'priced' : tier === 'strong' ? 'strong match' : 'verify at checkout';
-
-  const isFramed = panelUrl === coupon.url;
+  const items = itemsForCoupon(coupon, PRICES);
 
   return `
-    <label class="match-row${checked ? ' checked' : ''}" data-coupon-id="${escapeHTML(coupon.id)}" title="${escapeHTML(reasons.join(' · '))}">
+    <div class="match-row${checked ? ' checked' : ''}" data-coupon-id="${escapeHTML(coupon.id)}" title="${escapeHTML(reasons.join(' · '))}">
       <div class="match-row-top">
-        <input type="checkbox" data-coupon-id="${escapeHTML(coupon.id)}" ${checked ? 'checked' : ''}>
-        <span class="match-value">${escapeHTML(coupon.value || '')}</span>
-        <span class="confidence-badge ${badgeClass}">${badgeText}</span>
-        <button type="button" class="view-in-panel-btn${isFramed ? ' active' : ''}" data-panel-url="${escapeHTML(coupon.url)}" data-panel-label="${escapeHTML(coupon.value || '')}">
-          ${isFramed ? '👁 Viewing' : '👁 View'}
-        </button>
+        <label class="match-checkbox-wrap">
+          <input type="checkbox" data-coupon-id="${escapeHTML(coupon.id)}" ${checked ? 'checked' : ''}>
+        </label>
+        <img class="match-thumb" src="${couponImageUrl(coupon.id)}" alt="" loading="lazy" onerror="this.style.display='none'">
+        <div class="match-row-info">
+          <div class="match-row-line1">
+            <span class="match-value">${escapeHTML(coupon.value || '')}</span>
+            <span class="confidence-badge ${badgeClass}">${badgeText}</span>
+            <a class="match-clip-link" href="${coupon.url}" target="_blank" rel="noopener">Clip on heb.com →</a>
+          </div>
+          <div class="match-desc">${escapeHTML(coupon.description || '')}</div>
+        </div>
+      </div>
+      <div class="match-items">
+        ${items.map((i) => itemChipHTML(coupon, i)).join('')}
+        <button type="button" class="item-add-btn" data-coupon-id="${escapeHTML(coupon.id)}">+ Add item you found</button>
         <span class="price-input-wrap">$
           <input type="number" step="0.01" min="0" placeholder="price" data-price-for="${escapeHTML(coupon.id)}"
                  value="${Object.prototype.hasOwnProperty.call(PRICE_OVERRIDES, coupon.id) ? PRICE_OVERRIDES[coupon.id] : ''}">
         </span>
       </div>
-      <div class="match-desc">${escapeHTML(coupon.description || '')}${priceMatch ? ` <span class="matched-price">— ${escapeHTML(priceMatch.name)}</span>` : ''}</div>
-    </label>`;
+      <div class="item-add-form" data-coupon-id="${escapeHTML(coupon.id)}" hidden>
+        <input type="text" class="item-add-name" placeholder="Item name, e.g. Dove Body Wash 22 oz.">
+        <input type="number" step="0.01" min="0" class="item-add-price" placeholder="Price">
+        <button type="button" class="item-add-save" data-coupon-id="${escapeHTML(coupon.id)}">Save</button>
+        <button type="button" class="item-add-cancel">Cancel</button>
+      </div>
+    </div>`;
 }
 
 function renderStackBuilder() {
@@ -399,55 +463,31 @@ function renderStackBuilder() {
   const strongMatches = allMatches.filter((m) => m.tier === 'strong');
   const possibleMatches = allMatches.filter((m) => m.tier === 'possible');
 
-  if (panelUrl === null) {
-    panelUrl = featured.url;
-    panelLabel = featured.value || 'Featured coupon';
-  }
-
   container.style.display = 'block';
   container.innerHTML = `
     <div class="stack-builder-header">
       <div>
         <h2>🧮 Stacking with: ${escapeHTML(featured.value)} — ${escapeHTML(featured.description)}</h2>
-        <p>Check the coupons you'll also use. Totals update as you go — enter a price for anything not auto-matched yet.</p>
+        <p>Check the coupons you'll also use. A coupon can cover several products — "+ Add item you found" logs one after you check heb.com once, and it's remembered for next time.</p>
       </div>
       <button type="button" class="stack-builder-close" id="stack-builder-close" aria-label="Close">✕</button>
     </div>
-    <div class="stack-builder-body">
-      <div class="stack-builder-main">
-        ${strongMatches.length ? `
-          <div class="tier-group">
-            <h3><span class="tier-dot strong"></span>Strong matches (${strongMatches.length})</h3>
-            ${strongMatches.map(matchRowHTML).join('')}
-          </div>` : ''}
-        ${possibleMatches.length ? `
-          <div class="tier-group">
-            <h3><span class="tier-dot possible"></span>Possible — verify at checkout (${possibleMatches.length})</h3>
-            ${possibleMatches.map(matchRowHTML).join('')}
-          </div>` : ''}
-        ${!strongMatches.length && !possibleMatches.length ? `<div class="empty-state">No obviously matching coupons found for this basket coupon yet.</div>` : ''}
-        <div class="stack-summary" id="stack-summary"></div>
-      </div>
-      ${panelVisible ? `
-        <div class="stack-builder-panel">
-          <div class="panel-header">
-            <button type="button" class="panel-view-featured-btn" title="Show the featured basket coupon's page">↩ ${escapeHTML(featured.value || 'featured coupon')}</button>
-            <button type="button" class="panel-hide-btn" id="panel-hide-btn" aria-label="Hide panel">✕</button>
-          </div>
-          <div class="panel-current-label">Viewing: ${escapeHTML(panelLabel)}</div>
-          <div class="panel-fallback-card">
-            <div class="panel-fallback-icon">🔗</div>
-            <p class="panel-fallback-text">H-E-B doesn't allow its pages to display inside other sites — a security setting on their end, not something this site can open a workaround for.</p>
-            <a class="panel-open-btn" href="${escapeHTML(panelUrl)}" target="_blank" rel="noopener">Open on heb.com ↗</a>
-          </div>
-        </div>` : `
-        <button type="button" class="panel-show-btn" id="panel-show-btn">🔗 Show quick-open panel</button>`}
-    </div>
+    ${strongMatches.length ? `
+      <div class="tier-group">
+        <h3><span class="tier-dot strong"></span>Strong matches (${strongMatches.length})</h3>
+        ${strongMatches.map(matchRowHTML).join('')}
+      </div>` : ''}
+    ${possibleMatches.length ? `
+      <div class="tier-group">
+        <h3><span class="tier-dot possible"></span>Possible — verify at checkout (${possibleMatches.length})</h3>
+        ${possibleMatches.map(matchRowHTML).join('')}
+      </div>` : ''}
+    ${!strongMatches.length && !possibleMatches.length ? `<div class="empty-state">No obviously matching coupons found for this basket coupon yet.</div>` : ''}
+    <div class="stack-summary" id="stack-summary"></div>
   `;
 
   document.getElementById('stack-builder-close').addEventListener('click', () => {
     selectedFeaturedId = null;
-    panelUrl = null;
     render();
   });
 
@@ -470,39 +510,53 @@ function renderStackBuilder() {
     });
   });
 
-  container.querySelectorAll('.view-in-panel-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      panelUrl = btn.dataset.panelUrl;
-      panelLabel = btn.dataset.panelLabel;
+  container.querySelectorAll('.item-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const id = chip.dataset.couponId;
+      const price = parseFloat(chip.dataset.usePrice);
+      savePriceOverride(id, price);
+      renderStackBuilder();
+      renderHero();
+    });
+  });
+
+  container.querySelectorAll('.item-chip-remove').forEach((removeBtn) => {
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // don't also trigger the parent chip's "use this price" click
+      removeItemNote(removeBtn.dataset.couponId, removeBtn.dataset.removeItem);
       renderStackBuilder();
     });
   });
 
-  const viewFeaturedBtn = container.querySelector('.panel-view-featured-btn');
-  if (viewFeaturedBtn) {
-    viewFeaturedBtn.addEventListener('click', () => {
-      panelUrl = featured.url;
-      panelLabel = featured.value || 'Featured coupon';
-      renderStackBuilder();
+  container.querySelectorAll('.item-add-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const form = container.querySelector(`.item-add-form[data-coupon-id="${btn.dataset.couponId}"]`);
+      if (form) {
+        form.hidden = !form.hidden;
+        if (!form.hidden) form.querySelector('.item-add-name').focus();
+      }
     });
-  }
+  });
 
-  const hideBtn = document.getElementById('panel-hide-btn');
-  if (hideBtn) {
-    hideBtn.addEventListener('click', () => {
-      panelVisible = false;
-      renderStackBuilder();
+  container.querySelectorAll('.item-add-cancel').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.closest('.item-add-form').hidden = true;
     });
-  }
-  const showBtn = document.getElementById('panel-show-btn');
-  if (showBtn) {
-    showBtn.addEventListener('click', () => {
-      panelVisible = true;
+  });
+
+  container.querySelectorAll('.item-add-save').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.couponId;
+      const form = btn.closest('.item-add-form');
+      const name = form.querySelector('.item-add-name').value.trim();
+      const price = parseFloat(form.querySelector('.item-add-price').value);
+      if (!name || Number.isNaN(price)) return;
+      saveItemNote(id, name, price);
+      savePriceOverride(id, price); // use it right away, no extra click needed
       renderStackBuilder();
+      renderHero();
     });
-  }
+  });
 
   recomputeSummary(featured, allMatches);
 }
@@ -552,7 +606,6 @@ function recomputeSummary(featured, allMatches) {
 
 function openStackBuilder(featuredId) {
   if (featuredId !== selectedFeaturedId) {
-    panelUrl = null; // reset to the new featured coupon's own page
     checkedGeneralIds.clear();
   }
   selectedFeaturedId = featuredId;
@@ -642,6 +695,7 @@ function applyStaleBanner() {
 
 async function load() {
   loadPriceOverrides();
+  loadItemNotes();
   try {
     const [couponsRes, pricesRes] = await Promise.all([
       fetch('coupons.json', { cache: 'no-store' }),

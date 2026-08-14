@@ -189,19 +189,30 @@ section.stackable-section .sub {
 .match-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   margin-bottom: 6px;
   font-size: 0.86rem;
   background: #fff;
-  cursor: pointer;
 }
 .match-row.checked { border-color: var(--accent); background: #f4faf4; }
-.match-row-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.match-row input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; }
-.match-row .match-desc { padding-left: 28px; line-height: 1.35; }
+.match-row-top { display: flex; align-items: flex-start; gap: 10px; }
+.match-checkbox-wrap { display: flex; align-items: center; padding-top: 2px; cursor: pointer; }
+.match-row input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
+.match-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.match-row-info { flex: 1; min-width: 0; }
+.match-row-line1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
+.match-row .match-desc { line-height: 1.35; }
 .match-row .match-value { font-weight: 700; color: var(--heb-red); white-space: nowrap; }
 .match-row .confidence-badge {
   font-size: 0.66rem;
@@ -214,117 +225,84 @@ section.stackable-section .sub {
 .confidence-badge.strong { background: var(--strong); }
 .confidence-badge.possible { background: var(--possible); }
 .confidence-badge.price-verified { background: var(--price-verified); }
-.match-row .price-input-wrap { display: flex; align-items: center; gap: 3px; white-space: nowrap; font-size: 0.8rem; color: var(--muted); margin-left: auto; }
-.match-row .price-input-wrap input {
+.match-clip-link {
+  margin-left: auto;
+  color: var(--heb-red);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* --- Items you've found for a coupon: chips + inline add form --- */
+.match-items { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-left: 54px; }
+.item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef0f2;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 6px 4px 10px;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+.item-chip:hover { background: #e2e5e9; }
+.item-chip-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-chip-price { font-weight: 700; color: var(--heb-dark); }
+.item-chip-remove, .item-chip-source {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+.item-chip-remove:hover { background: #d8dadd; color: var(--heb-dark); }
+.item-add-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+.price-input-wrap { display: flex; align-items: center; gap: 3px; white-space: nowrap; font-size: 0.8rem; color: var(--muted); margin-left: auto; }
+.price-input-wrap input {
   width: 62px;
   padding: 4px 6px;
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.8rem;
 }
-.match-row .matched-price { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
-
-.view-in-panel-btn {
-  background: #eef0f2;
+.item-add-form { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 54px; }
+.item-add-form[hidden] { display: none; }
+.item-add-form input {
+  padding: 5px 8px;
   border: 1px solid var(--border);
-  color: var(--heb-dark);
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 999px;
-  cursor: pointer;
-  white-space: nowrap;
+  border-radius: 6px;
+  font-size: 0.8rem;
 }
-.view-in-panel-btn.active { background: var(--price-verified); border-color: var(--price-verified); color: white; }
-
-/* --- Stack Builder two-column layout: match list + browsing panel --- */
-.stack-builder-body {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 18px;
-  align-items: start;
-}
-.stack-builder-panel {
-  position: sticky;
-  top: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-}
-.panel-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background: var(--heb-dark);
-  flex-wrap: wrap;
-}
-.panel-view-featured-btn {
-  background: rgba(255,255,255,0.12);
-  border: none;
+.item-add-name { flex: 1; min-width: 140px; }
+.item-add-price { width: 80px; }
+.item-add-save {
+  background: var(--accent);
   color: white;
-  font-size: 0.72rem;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
   font-weight: 600;
-  padding: 4px 9px;
-  border-radius: 999px;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px;
 }
-.panel-hide-btn {
-  margin-left: auto;
+.item-add-cancel {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.75);
-  cursor: pointer;
-  font-size: 0.9rem;
-  padding: 2px 4px;
-}
-.panel-current-label {
-  font-size: 0.72rem;
   color: var(--muted);
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
-}
-.panel-fallback-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 10px;
-  padding: 32px 20px;
-  background: #fafafa;
-}
-.panel-fallback-icon { font-size: 1.8rem; }
-.panel-fallback-text { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.4; }
-.panel-open-btn {
-  background: var(--heb-red);
-  color: white;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 10px 22px;
-  border-radius: 999px;
-}
-.panel-show-btn {
-  align-self: start;
-  background: var(--card-bg);
-  border: 1px dashed var(--border);
-  color: var(--muted);
-  border-radius: 10px;
-  padding: 10px;
   font-size: 0.8rem;
   cursor: pointer;
-}
-
-@media (max-width: 860px) {
-  .stack-builder-body { grid-template-columns: 1fr; }
-  .stack-builder-panel { position: static; }
 }
 
 .stack-summary {
@@ -396,7 +374,8 @@ h2.section-title { font-size: 1.05rem; margin: 0 0 12px; }
 
 @media (max-width: 600px) {
   .hero .hero-amount { font-size: 2rem; }
-  .match-row { flex-wrap: wrap; }
+  .match-items, .item-add-form { padding-left: 0; }
+  .price-input-wrap { margin-left: 0; }
 
   /* Keep the sticky summary compact on mobile — a tall stacked layout here
      would cover the checkbox rows scrolling underneath it. */
