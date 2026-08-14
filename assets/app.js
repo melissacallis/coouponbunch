@@ -432,14 +432,16 @@ function renderStackBuilder() {
         <div class="stack-builder-panel">
           <div class="panel-header">
             <button type="button" class="panel-view-featured-btn" title="Show the featured basket coupon's page">↩ ${escapeHTML(featured.value || 'featured coupon')}</button>
-            <a class="panel-open-new-tab" href="${escapeHTML(panelUrl)}" target="_blank" rel="noopener">Open in new tab ↗</a>
             <button type="button" class="panel-hide-btn" id="panel-hide-btn" aria-label="Hide panel">✕</button>
           </div>
           <div class="panel-current-label">Viewing: ${escapeHTML(panelLabel)}</div>
-          <iframe id="coupon-frame" src="${escapeHTML(panelUrl)}" loading="lazy" referrerpolicy="no-referrer"></iframe>
-          <p class="panel-fallback-note">Blank above? H-E-B is likely blocking embedded pages — use "Open in new tab" instead.</p>
+          <div class="panel-fallback-card">
+            <div class="panel-fallback-icon">🔗</div>
+            <p class="panel-fallback-text">H-E-B doesn't allow its pages to display inside other sites — a security setting on their end, not something this site can open a workaround for.</p>
+            <a class="panel-open-btn" href="${escapeHTML(panelUrl)}" target="_blank" rel="noopener">Open on heb.com ↗</a>
+          </div>
         </div>` : `
-        <button type="button" class="panel-show-btn" id="panel-show-btn">👁 Show browsing panel</button>`}
+        <button type="button" class="panel-show-btn" id="panel-show-btn">🔗 Show quick-open panel</button>`}
     </div>
   `;
 

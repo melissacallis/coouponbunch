@@ -276,15 +276,8 @@ section.stackable-section .sub {
   text-overflow: ellipsis;
   max-width: 150px;
 }
-.panel-open-new-tab {
-  color: white;
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-decoration: none;
-  margin-left: auto;
-  white-space: nowrap;
-}
 .panel-hide-btn {
+  margin-left: auto;
   background: none;
   border: none;
   color: rgba(255,255,255,0.75);
@@ -298,18 +291,25 @@ section.stackable-section .sub {
   padding: 6px 10px;
   border-bottom: 1px solid var(--border);
 }
-#coupon-frame {
-  width: 100%;
-  height: 60vh;
-  border: none;
+.panel-fallback-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 32px 20px;
   background: #fafafa;
 }
-.panel-fallback-note {
-  font-size: 0.68rem;
-  color: var(--muted);
-  padding: 6px 10px;
-  margin: 0;
-  background: #fafafa;
+.panel-fallback-icon { font-size: 1.8rem; }
+.panel-fallback-text { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.4; }
+.panel-open-btn {
+  background: var(--heb-red);
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 22px;
+  border-radius: 999px;
 }
 .panel-show-btn {
   align-self: start;
@@ -325,7 +325,6 @@ section.stackable-section .sub {
 @media (max-width: 860px) {
   .stack-builder-body { grid-template-columns: 1fr; }
   .stack-builder-panel { position: static; }
-  #coupon-frame { height: 50vh; }
 }
 
 .stack-summary {
