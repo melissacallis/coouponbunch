@@ -1,0 +1,43 @@
+{
+  "updated_at": "2026-08-10T08:00:00+00:00",
+  "source_url": "https://www.target.com/pl/913065607?moveTo=product-list-grid&newSearch=false&sortBy=PriceLow&facetedValue=55e6u",
+  "source": "bookmarklet",
+  "products": [
+    {
+      "id": "A-13579246",
+      "name": "Tide Liquid Laundry Detergent, 92 fl oz",
+      "brand": "Tide",
+      "price": 13.99,
+      "image": null,
+      "gift_card_promo": "Buy 2, Get a $5 Target GiftCard",
+      "url": "https://www.target.com/p/tide-liquid-laundry-detergent/-/A-13579246"
+    },
+    {
+      "id": "A-24681357",
+      "name": "Pampers Swaddlers Diapers Jumbo Pack",
+      "brand": "Pampers",
+      "price": 24.99,
+      "image": null,
+      "gift_card_promo": "Spend $75, Get a $15 Target GiftCard",
+      "url": "https://www.target.com/p/pampers-swaddlers-diapers/-/A-24681357"
+    },
+    {
+      "id": "A-35792468",
+      "name": "Dove Men+Care Body Wash, 18 fl oz",
+      "brand": "Dove",
+      "price": 6.49,
+      "image": null,
+      "gift_card_promo": "Buy 3, Get a $5 Target GiftCard",
+      "url": "https://www.target.com/p/dove-men-care-body-wash/-/A-35792468"
+    },
+    {
+      "id": "A-46813579",
+      "name": "up & up Paper Towels, 8 Big Rolls",
+      "brand": "up & up",
+      "price": 11.99,
+      "image": null,
+      "gift_card_promo": "Buy 2, Get a $5 Target GiftCard",
+      "url": "https://www.target.com/p/paper-towels/-/A-46813579"
+    }
+  ]
+}

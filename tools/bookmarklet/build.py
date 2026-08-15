@@ -33,6 +33,20 @@ BOOKMARKLETS = [
         "run_on": "an H-E-B product search-results page, while logged in with your store selected",
         "then": "python tools/import_prices.py",
     },
+    {
+        "id": "target-products",
+        "title": "🎯 Scrape Target Gift-Card Products",
+        "src_file": "scrape-target-products.src.js",
+        "run_on": "a Target product-listing page filtered to gift-card promos, while logged in",
+        "then": "python tools/import_target_products.py",
+    },
+    {
+        "id": "target-coupons",
+        "title": "🏷️ Scrape Target Coupons",
+        "src_file": "scrape-target-coupons.src.js",
+        "run_on": "Target's Circle offers / coupons page, while logged in",
+        "then": "python tools/import_target_coupons.py",
+    },
 ]
 
 PAGE_TEMPLATE = """<!DOCTYPE html>
@@ -56,7 +70,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
 <h1>CouponBunch bookmarklets</h1>
-<p>Drag a button below to your bookmarks bar. Click it while on the matching H-E-B page —
+<p>Drag a button below to your bookmarks bar. Click it while on the matching page —
 it runs in your own logged-in browser, so it sees exactly what you see.</p>
 
 {cards}

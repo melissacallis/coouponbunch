@@ -47,6 +47,29 @@ product search-results page (with your store selected), then run
 `python tools/import_prices.py`. See the root `README.md` for why prices
 need a live logged-in session and can't be automated in CI.
 
+## Target refresh (gift card + coupon stacks)
+
+Two bookmarklets, same pattern:
+
+1. **🎯 Scrape Target Gift-Card Products** — run on a Target product-listing
+   page filtered to items with a "Buy X / Spend $Y, Get a Target GiftCard"
+   promo (like the URL you use to browse those deals), logged in. Downloads
+   `target-products-raw.json`. Then run `python tools/import_target_products.py`.
+2. **🏷️ Scrape Target Coupons** — run on Target's Circle offers / coupons
+   page, logged in. Downloads `target-coupons-raw.json`. Then run
+   `python tools/import_target_coupons.py`.
+
+The [Target Deals page](../../target/index.html) only ever shows a product
+if it has **both** a gift-card promo (from the first bookmarklet) **and** a
+matching brand coupon (from the second) — everything else is filtered out,
+so run both before expecting to see results.
+
+Target's DOM structure is unverified from this environment (no network
+access to target.com from the sandbox that built this) — if either
+bookmarklet finds nothing, inspect a real product/offer card in DevTools and
+update the `CANDIDATE_*` selector arrays at the top of the matching
+`scrape-target-*.src.js` file, then re-run `python tools/bookmarklet/build.py`.
+
 ## Troubleshooting
 
 - **"No coupon cards found"** — make sure the coupon page fully finished

@@ -1,0 +1,35 @@
+{
+  "updated_at": "2026-08-10T08:00:00+00:00",
+  "source_url": "https://www.target.com/circle/offers",
+  "source": "bookmarklet",
+  "coupons": [
+    {
+      "id": "circle-tide-20pct",
+      "brand": "Tide",
+      "description": "20% off Tide Laundry Detergent",
+      "value": "20% off",
+      "url": "https://www.target.com/circle/offers/tide-20-off"
+    },
+    {
+      "id": "circle-pampers-3off",
+      "brand": "Pampers",
+      "description": "$3 off Pampers Diapers Jumbo Pack or larger",
+      "value": "$3 off",
+      "url": "https://www.target.com/circle/offers/pampers-3-off"
+    },
+    {
+      "id": "circle-dove-2off",
+      "brand": "Dove",
+      "description": "$2 off Dove Men+Care Body Wash",
+      "value": "$2 off",
+      "url": "https://www.target.com/circle/offers/dove-2-off"
+    },
+    {
+      "id": "circle-suave-15pct",
+      "brand": "Suave",
+      "description": "15% off Suave Hair Care",
+      "value": "15% off",
+      "url": "https://www.target.com/circle/offers/suave-15-off"
+    }
+  ]
+}
