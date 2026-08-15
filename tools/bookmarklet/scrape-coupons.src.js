@@ -103,7 +103,12 @@
       }
       const cardText = card ? card.textContent.replace(/\s+/g, ' ').trim() : '';
 
-      const expiresMatch = cardText.match(/Expires\s+[\w/]+/);
+      // H-E-B's card text runs the expiry straight into the next label with
+      // no separating space (e.g. "Expires 8/25/2026Unlimited use"), so a
+      // greedy [\w/]+ match would swallow "Unlimited"/"Limit" right along
+      // with the date. Capture only a date or weekday name explicitly, so
+      // it can't run past the actual expiry value.
+      const expiresMatch = cardText.match(/Expires\s+(\d{1,2}\/\d{1,2}\/\d{2,4}|Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/i);
       const limit = cardText.includes('Limit 1 per customer') ? 'Limit 1 per customer' : 'Unlimited use';
       const fullUrl = href.startsWith('/') ? 'https://www.heb.com' + href : href;
 
@@ -111,7 +116,7 @@
         id: extractIdFromHref(href),
         value: extractValue(title, cardText),
         description: title,
-        expires: expiresMatch ? expiresMatch[0].replace('Expires ', '') : '',
+        expires: expiresMatch ? expiresMatch[1] : '',
         limit,
         url: fullUrl,
       });

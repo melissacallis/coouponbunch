@@ -77,6 +77,15 @@ SAVE_DOLLAR_RE = re.compile(r"Save\s+\$(\d+(?:\.\d{2})?)", re.I)
 BASKET_SENTENCE_RE = re.compile(
     r"\$(\d+(?:\.\d{2})?)\s+off\s+your\s+basket\s+when\s+you\s+buy\s+\$(\d+(?:\.\d{2})?)", re.I
 )
+# H-E-B's card text runs the expiry straight into the next label with no
+# separating space (e.g. "Expires 8/25/2026Unlimited use"), so a greedy
+# [\w/]+ match swallows "Unlimited"/"Limit" right along with the date. This
+# explicitly captures only a date or weekday name — nothing else — so it
+# can't run past the actual expiry value no matter what follows it.
+EXPIRES_RE = re.compile(
+    r"Expires\s+(\d{1,2}/\d{1,2}/\d{2,4}|Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)",
+    re.I,
+)
 
 
 def extract_value(title, card_text):
@@ -134,8 +143,8 @@ def parse_coupons(html):
         card_text = card.get_text(" ", strip=True) if card else ""
         value = extract_value(title, card_text)
 
-        expires_match = re.search(r"Expires\s+[\w/]+", card_text)
-        expires = expires_match.group(0).replace("Expires ", "") if expires_match else ""
+        expires_match = EXPIRES_RE.search(card_text)
+        expires = expires_match.group(1) if expires_match else ""
 
         limit = "Unlimited use"
         if "Limit 1 per customer" in card_text:
