@@ -23,13 +23,31 @@ const ITEM_NOTES_KEY = 'heb-item-notes';
 // extract_qualifying_items so scrape-time and browse-time logic agree.
 const QUALIFYING_CLAUSE_RE = /buy\s+\$\d+(?:\.\d{2})?\s+of\s+(.+?)(?:\s+items?\b|\s+products?\b|\s*\(|$)/i;
 
+// A poorly-terminated qualifying clause (one that doesn't cleanly end at
+// "items"/"products"/"(") can spill into a trailing size/count descriptor,
+// e.g. "...buy $25 of Dove, AXE, 20 oz." splitting out "20 oz." as if it
+// were a brand name. That's a near-content-free fragment that can spuriously
+// substring-match unrelated coupons, so it's filtered out here rather than
+// treated as a real qualifying phrase. Mirrors heb_lib/classify.py.
+const SIZE_FRAGMENT_RE = /^\d+(\.\d+)?\s*-?\s*\d*(\.\d+)?\s*(oz\.?|ct\.?|lb\.?|fl\.?\s*oz\.?|pk\.?|count|ea\.?|each|g|ml|qt\.?)\.?$/i;
+
+// Trailing filler like "assorted varieties" carries no brand/category
+// signal at all — it shows up in nearly every coupon's description, so
+// treating it as a qualifying phrase turns it into a false "strong" match
+// against hundreds of unrelated coupons (confirmed against real data: 457).
+const NOISE_PHRASE_RE = /^(assorted|various|select)?\s*(varieties|flavors|sizes|selections?)$/i;
+
+function isSizeFragment(phrase) {
+  return SIZE_FRAGMENT_RE.test(phrase) || NOISE_PHRASE_RE.test(phrase) || phrase.replace(/[^A-Za-z]/g, '').length < 3;
+}
+
 function extractQualifyingItems(description) {
   const m = (description || '').match(QUALIFYING_CLAUSE_RE);
   if (!m) return [];
   return m[1]
     .split(/,|\bor\b|\band\b/i)
     .map((s) => s.trim())
-    .filter((s) => s.length > 1);
+    .filter((s) => s.length > 1 && !isSizeFragment(s));
 }
 
 // Generic merchandising-category nouns that ride along in a qualifying-items
@@ -118,13 +136,30 @@ function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// Compiled once at load rather than rebuilt on every findBrandsInText() call
+// — with ~300 brands checked against every (featured × general) pair, that
+// used to mean rebuilding ~300 RegExp objects millions of times per render.
+const BRAND_REGEXES = BRAND_DICTIONARY.map((brand) => ({
+  brand,
+  re: new RegExp('\\b' + escapeRegExp(brand) + '\\b', 'i'),
+}));
+
 function findBrandsInText(description) {
   const found = new Set();
-  for (const brand of BRAND_DICTIONARY) {
-    const re = new RegExp('\\b' + escapeRegExp(brand) + '\\b', 'i');
+  for (const { brand, re } of BRAND_REGEXES) {
     if (re.test(description)) found.add(brand);
   }
   return found;
+}
+
+// A coupon's brand set only depends on its own (unchanging) description, so
+// it's cached directly on the coupon object the first time it's computed —
+// without this, buildMatches() recomputes the same featured coupon's brand
+// set once per general coupon (and vice versa), turning an O(featured +
+// general) scan into O(featured × general) and taking ~15s over the real
+// dataset instead of well under a second.
+function brandsForCoupon(coupon) {
+  return coupon._brands || (coupon._brands = findBrandsInText(coupon.description || ''));
 }
 
 // Extracts {discount, threshold} dollar amounts from a basket coupon, e.g.
@@ -153,7 +188,7 @@ function parseCouponSavings(coupon, price) {
 
 function findPriceForCoupon(general, prices) {
   if (!prices || !prices.products) return null;
-  const brands = findBrandsInText(general.description || '');
+  const brands = brandsForCoupon(general);
   for (const brand of brands) {
     const entries = prices.products[brand];
     if (entries && entries.length) return { brand, ...entries[0] };
@@ -170,7 +205,7 @@ function findPriceForCoupon(general, prices) {
 // so that lookup only ever has to happen once per coupon, not every visit).
 function itemsForCoupon(coupon, prices) {
   const items = [];
-  const brands = findBrandsInText(coupon.description || '');
+  const brands = brandsForCoupon(coupon);
   brands.forEach((brand) => {
     const entries = (prices && prices.products && prices.products[brand]) || [];
     entries.forEach((e, i) => {
@@ -202,8 +237,8 @@ function computeConfidence(featured, general, prices) {
     (p) => isGenericPhrase(p) && new RegExp('\\b' + escapeRegExp(p) + '\\b', 'i').test(general.description)
   );
 
-  const featuredBrands = findBrandsInText(featured.description);
-  const generalBrands = findBrandsInText(general.description);
+  const featuredBrands = brandsForCoupon(featured);
+  const generalBrands = brandsForCoupon(general);
   const brandOverlap = [...featuredBrands].filter((b) => generalBrands.has(b));
 
   let tier = null;
@@ -235,6 +270,25 @@ function buildMatches(featured, generalList, prices) {
   }
   matches.sort((a, b) => (a.tier === b.tier ? 0 : a.tier === 'strong' ? -1 : 1));
   return matches;
+}
+
+// Ranks featured basket coupons by "% back" (discount ÷ threshold) among
+// only those with at least one confirmed (strong-tier) manufacturer-coupon
+// match — i.e. a stack that's genuinely usable today, not just a basket
+// coupon sitting there with nothing to pair it with.
+function computeBestStacks(data, prices, maxResults = 8) {
+  const results = [];
+  for (const featured of data.featured_stackable_candidates || []) {
+    const threshold = parseBasketThreshold(featured);
+    if (!threshold || threshold.threshold <= 0) continue;
+    const matches = buildMatches(featured, data.general_coupons || [], prices);
+    const strongMatches = matches.filter((m) => m.tier === 'strong');
+    if (!strongMatches.length) continue;
+    const percentBack = (threshold.discount / threshold.threshold) * 100;
+    results.push({ featured, threshold, percentBack, strongMatches });
+  }
+  results.sort((a, b) => b.percentBack - a.percentBack);
+  return results.slice(0, maxResults);
 }
 
 function computeHeroStack(data, prices) {
@@ -344,6 +398,37 @@ function renderHero() {
       document.querySelector('.featured-grid')?.scrollIntoView({ behavior: 'smooth' });
     };
   }
+}
+
+function bestStackCardHTML(stack) {
+  const { featured, percentBack, strongMatches } = stack;
+  const matchLabel = strongMatches
+    .slice(0, 2)
+    .map((m) => escapeHTML(m.coupon.value || ''))
+    .join(' + ');
+  const extra = strongMatches.length > 2 ? ` + ${strongMatches.length - 2} more` : '';
+  return `
+    <div class="best-stack-card" data-featured-id="${escapeHTML(featured.id)}">
+      <div class="best-stack-pct">${percentBack.toFixed(0)}% back</div>
+      <div class="best-stack-value">${escapeHTML(featured.value || '')}</div>
+      <div class="best-stack-desc">${escapeHTML(featured.description || '')}</div>
+      <div class="best-stack-matches">✓ ${strongMatches.length} confirmed match${strongMatches.length > 1 ? 'es' : ''}: ${matchLabel}${extra}</div>
+      <button type="button" class="build-stack-btn" data-featured-id="${escapeHTML(featured.id)}">Build this stack →</button>
+    </div>`;
+}
+
+function renderBestStacks() {
+  const container = document.getElementById('best-stacks-list');
+  if (!container) return;
+
+  const stacks = computeBestStacks(DATA, PRICES);
+  container.innerHTML = stacks.length
+    ? stacks.map(bestStackCardHTML).join('')
+    : `<div class="empty-state">No confirmed stacks yet — check back after the next coupon refresh.</div>`;
+
+  container.querySelectorAll('[data-featured-id]').forEach((el) => {
+    el.addEventListener('click', () => openStackBuilder(el.dataset.featuredId));
+  });
 }
 
 function cardHTML(c) {
@@ -661,6 +746,7 @@ function render() {
   document.querySelector('section.featured').style.display = showFeatured ? '' : 'none';
   document.querySelector('main > section.all-others').style.display = showGeneral ? '' : 'none';
 
+  renderBestStacks();
   renderStackBuilder();
   renderHero();
 }

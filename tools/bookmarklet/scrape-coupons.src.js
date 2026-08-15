@@ -51,6 +51,43 @@
     return m ? m[1] : href;
   }
 
+  // Basket coupons ("$X off your basket when you buy $Y of ...") get a
+  // clean short chip like "$5 off $25" built from the two amounts, rather
+  // than returning the whole matched sentence.
+  //
+  // For everything else, real dollar/percent/cents/"N for $" value patterns
+  // are checked BEFORE "Combo Loco" specifically, and the coupon's own title
+  // text is checked before the wider card container — walking up parent
+  // elements to find a card's boundaries is inherently approximate, and can
+  // sweep in a neighboring card's "Combo Loco" badge; letting a specific
+  // dollar/percent match win avoids that coupon being mislabeled just
+  // because stray badge text happened to appear in the scanned region.
+  function extractValue(title, cardText) {
+    let m = title.match(/\$(\d+(?:\.\d{2})?)\s+off\s+your\s+basket\s+when\s+you\s+buy\s+\$(\d+(?:\.\d{2})?)/i);
+    if (m) return `$${m[1]} off $${m[2]}`;
+
+    // "Save $2.00 on ONE Dove..." is a common alternate phrasing for a flat
+    // dollar-off coupon — normalize it to "$2.00 off" so it still matches
+    // the "$X off" pattern the savings-calculator logic looks for.
+    m = title.match(/Save\s+\$(\d+(?:\.\d{2})?)/i);
+    if (m) return `$${m[1]} off`;
+
+    const patterns = [
+      /\$\d+(?:\.\d{2})?\s+off(\s+\d+)?/i,
+      /\d+%\s+off/i,
+      /\d+¢\s+off(\s+\d+)?/i,
+      /\d+\s+for\s+\$\d+/i,
+      /Combo Loco/i,
+    ];
+    for (const source of [title, cardText]) {
+      for (const pattern of patterns) {
+        const found = source.match(pattern);
+        if (found) return found[0];
+      }
+    }
+    return '';
+  }
+
   function parseCardsFromDOM() {
     const links = Array.from(document.querySelectorAll(CARD_SELECTOR));
     const coupons = [];
@@ -66,18 +103,20 @@
       }
       const cardText = card ? card.textContent.replace(/\s+/g, ' ').trim() : '';
 
-      const valueMatch = cardText.match(
-        /(\$\d+(\.\d{2})?\s+off(\s+\d+)?|\d+%\s+off|\d+¢\s+off(\s+\d+)?|Combo Loco|\d+\s+for\s+\$\d+)/
-      );
-      const expiresMatch = cardText.match(/Expires\s+[\w/]+/);
+      // H-E-B's card text runs the expiry straight into the next label with
+      // no separating space (e.g. "Expires 8/25/2026Unlimited use"), so a
+      // greedy [\w/]+ match would swallow "Unlimited"/"Limit" right along
+      // with the date. Capture only a date or weekday name explicitly, so
+      // it can't run past the actual expiry value.
+      const expiresMatch = cardText.match(/Expires\s+(\d{1,2}\/\d{1,2}\/\d{2,4}|Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)/i);
       const limit = cardText.includes('Limit 1 per customer') ? 'Limit 1 per customer' : 'Unlimited use';
       const fullUrl = href.startsWith('/') ? 'https://www.heb.com' + href : href;
 
       coupons.push({
         id: extractIdFromHref(href),
-        value: valueMatch ? valueMatch[0] : '',
+        value: extractValue(title, cardText),
         description: title,
-        expires: expiresMatch ? expiresMatch[0].replace('Expires ', '') : '',
+        expires: expiresMatch ? expiresMatch[1] : '',
         limit,
         url: fullUrl,
       });

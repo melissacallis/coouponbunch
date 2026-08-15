@@ -66,6 +66,59 @@ def detect_block_page(html):
     return any(marker in html for marker in INCAPSULA_MARKERS)
 
 
+VALUE_PATTERNS = [
+    re.compile(r"\$\d+(?:\.\d{2})?\s+off(\s+\d+)?", re.I),
+    re.compile(r"\d+%\s+off", re.I),
+    re.compile(r"\d+¢\s+off(\s+\d+)?", re.I),
+    re.compile(r"\d+\s+for\s+\$\d+", re.I),
+    re.compile(r"Combo Loco", re.I),
+]
+SAVE_DOLLAR_RE = re.compile(r"Save\s+\$(\d+(?:\.\d{2})?)", re.I)
+BASKET_SENTENCE_RE = re.compile(
+    r"\$(\d+(?:\.\d{2})?)\s+off\s+your\s+basket\s+when\s+you\s+buy\s+\$(\d+(?:\.\d{2})?)", re.I
+)
+# H-E-B's card text runs the expiry straight into the next label with no
+# separating space (e.g. "Expires 8/25/2026Unlimited use"), so a greedy
+# [\w/]+ match swallows "Unlimited"/"Limit" right along with the date. This
+# explicitly captures only a date or weekday name — nothing else — so it
+# can't run past the actual expiry value no matter what follows it.
+EXPIRES_RE = re.compile(
+    r"Expires\s+(\d{1,2}/\d{1,2}/\d{2,4}|Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)",
+    re.I,
+)
+
+
+def extract_value(title, card_text):
+    """Basket coupons get a clean short chip like "$5 off $25" built from
+    the two amounts, rather than the whole matched sentence.
+
+    For everything else, real dollar/percent/cents/"N for $" value patterns
+    are checked BEFORE "Combo Loco" specifically, and the coupon's own title
+    text is checked before the wider card container — walking up parent
+    elements to find a card's boundaries is inherently approximate, and can
+    sweep in a neighboring card's "Combo Loco" badge; letting a specific
+    dollar/percent match win avoids that coupon being mislabeled just
+    because stray badge text happened to appear in the scanned region.
+    """
+    m = BASKET_SENTENCE_RE.search(title)
+    if m:
+        return f"${m.group(1)} off ${m.group(2)}"
+
+    # "Save $2.00 on ONE Dove..." is a common alternate phrasing for a flat
+    # dollar-off coupon — normalize it to "$2.00 off" so it still matches
+    # the "$X off" pattern the savings-calculator logic looks for.
+    m = SAVE_DOLLAR_RE.search(title)
+    if m:
+        return f"${m.group(1)} off"
+
+    for source in (title, card_text):
+        for pattern in VALUE_PATTERNS:
+            found = pattern.search(source)
+            if found:
+                return found.group(0)
+    return ""
+
+
 def parse_coupons(html):
     """Parse one rendered page's worth of coupon cards. Same field
     extraction the previous requests-based scraper used — H-E-B's card
@@ -88,16 +141,10 @@ def parse_coupons(html):
             else:
                 break
         card_text = card.get_text(" ", strip=True) if card else ""
+        value = extract_value(title, card_text)
 
-        value_match = re.search(
-            r"(\$\d+(\.\d{2})?\s+off(\s+\d+)?|\d+%\s+off|\d+¢\s+off(\s+\d+)?|Combo Loco|"
-            r"\d+\s+for\s+\$\d+)",
-            card_text,
-        )
-        value = value_match.group(0) if value_match else ""
-
-        expires_match = re.search(r"Expires\s+[\w/]+", card_text)
-        expires = expires_match.group(0).replace("Expires ", "") if expires_match else ""
+        expires_match = EXPIRES_RE.search(card_text)
+        expires = expires_match.group(1) if expires_match else ""
 
         limit = "Unlimited use"
         if "Limit 1 per customer" in card_text:
