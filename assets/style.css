@@ -106,23 +106,41 @@ section.stackable-section .sub {
 }
 
 .best-stacks-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  display: flex;
   gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 4px 4px 14px;
+  -webkit-overflow-scrolling: touch;
 }
+.best-stacks-list::-webkit-scrollbar { height: 8px; }
+.best-stacks-list::-webkit-scrollbar-track { background: transparent; }
+.best-stacks-list::-webkit-scrollbar-thumb { background: rgba(213, 18, 30, 0.25); border-radius: 8px; }
 .best-stack-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-left: 5px solid var(--strong);
-  border-radius: 12px;
+  /* Light, shaded-transparent tint (rather than the solid white of other
+     cards) so the carousel reads as its own distinct "highlight reel"
+     rather than blending into the featured/general lists below it. */
+  background: linear-gradient(160deg, rgba(213, 18, 30, 0.08), rgba(213, 18, 30, 0.02));
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(213, 18, 30, 0.16);
+  border-radius: 14px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   cursor: pointer;
+  flex: 0 0 250px;
+  scroll-snap-align: start;
   transition: box-shadow .15s, transform .15s;
 }
-.best-stack-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.08); transform: translateY(-1px); }
+.best-stack-card:hover { box-shadow: 0 6px 18px rgba(213, 18, 30, 0.14); transform: translateY(-2px); }
+.best-stack-img {
+  width: 100%;
+  height: 90px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 8px;
+}
 .best-stack-pct {
   align-self: flex-start;
   background: var(--strong);

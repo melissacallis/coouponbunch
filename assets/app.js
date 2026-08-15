@@ -44,7 +44,21 @@ function isSizeFragment(phrase) {
 function extractQualifyingItems(description) {
   const m = (description || '').match(QUALIFYING_CLAUSE_RE);
   if (!m) return [];
-  return m[1]
+  const clause = m[1];
+
+  // A brand whose own name contains "and"/"or" (e.g. "I and Love and You")
+  // would otherwise get shredded by the naive list-splitting below into
+  // meaningless, dangerously generic fragments ("Love", "You Dry") that can
+  // false-match unrelated coupons. If a known brand like that appears in the
+  // clause, trust it as the one qualifying item and stop — what follows it
+  // is a category descriptor ("Dry or Wet Cat Food"), not a second brand.
+  for (const brand of SPLIT_HAZARD_BRANDS) {
+    if (new RegExp('\\b' + escapeRegExp(brand) + '\\b', 'i').test(clause)) {
+      return [brand];
+    }
+  }
+
+  return clause
     .split(/,|\bor\b|\band\b/i)
     .map((s) => s.trim())
     .filter((s) => s.length > 1 && !isSizeFragment(s));
@@ -104,7 +118,7 @@ const BRAND_DICTIONARY = [
   "ChapStick","Q-Tip","St. Ives","Noxzema","Gold Peak","Bai","ACT",
   "Glade","Post-it","Nexxus","Honey Stinger","Lysol","Planet Oat",
   "Persil","Purex","Scott","AriZona","Kibbles 'n Bits","Think!",
-  "Quilted Northern","El Monterey","Suja","Bumble Bee","Playtex",
+  "Quilted Northern","El Monterey","Suja","Bumble Bee","Playtex","I and Love and You",
   "Johnsonville","Good Good","DampRid","ZYRTEC","Kikkoman",
   "Annie's","Cellucor","C4","Xtend","Monster Energy",
   "MONDAY","Ortega","Campbell's","Kool-Aid","Country Time","Tang",
@@ -131,6 +145,10 @@ const BRAND_DICTIONARY = [
   "Always Discreet","Flamingo",
 ].sort((a, b) => b.length - a.length); // longest-first so "Dove Men+Care" is
                                         // checked before plain "Dove"
+
+// Brands whose own name contains "and"/"or" as a whole word — used by
+// extractQualifyingItems (defined above) to avoid shredding them apart.
+const SPLIT_HAZARD_BRANDS = BRAND_DICTIONARY.filter((b) => /\b(and|or)\b/i.test(b));
 
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -410,6 +428,7 @@ function bestStackCardHTML(stack) {
   return `
     <div class="best-stack-card" data-featured-id="${escapeHTML(featured.id)}">
       <div class="best-stack-pct">${percentBack.toFixed(0)}% back</div>
+      <img class="best-stack-img" src="${couponImageUrl(featured.id)}" alt="" loading="lazy" onerror="this.style.display='none'">
       <div class="best-stack-value">${escapeHTML(featured.value || '')}</div>
       <div class="best-stack-desc">${escapeHTML(featured.description || '')}</div>
       <div class="best-stack-matches">✓ ${strongMatches.length} confirmed match${strongMatches.length > 1 ? 'es' : ''}: ${matchLabel}${extra}</div>
