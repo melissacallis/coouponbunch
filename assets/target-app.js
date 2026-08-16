@@ -20,11 +20,21 @@ function escapeHTML(str) {
   return div.innerHTML;
 }
 
-// "Buy 2, Get a $5 Target GiftCard" -> {type:'qty', qty:2, value:5}
-// "Spend $75, Get a $15 Target GiftCard" -> {type:'spend', threshold:75, value:15}
+// Real target.com phrasing (verified against a live product-listing page,
+// 2026-08) reads "$X Target GiftCard with ..." — the amount comes FIRST,
+// which is the reverse of what was originally assumed here ("Spend $X, Get
+// a $Y Target GiftCard"). Two variants seen on real product cards:
+//   "$15 Target GiftCard with $50 household items purchase" -> spend $50, get $15
+//   "$5 Target GiftCard with 3 oral care items"              -> buy 3 items, get $5
+// The older "Buy X, Get a $Y" / "Spend $X, Get a $Y" phrasings are kept as
+// fallbacks in case Target uses them on other pages (e.g. Circle offers).
 function parseGiftCardPromo(text) {
   if (!text) return null;
-  let m = text.match(/buy\s+(\d+),?\s+get\s+a?\s*\$(\d+(?:\.\d{2})?)\s+target\s+gift\s?card/i);
+  let m = text.match(/\$(\d+(?:\.\d{2})?)\s+target\s+gift\s?card\s+with\s+\$(\d+(?:\.\d{2})?)\s+[\w\s]*?purchase/i);
+  if (m) return { type: 'spend', threshold: parseFloat(m[2]), value: parseFloat(m[1]) };
+  m = text.match(/\$(\d+(?:\.\d{2})?)\s+target\s+gift\s?card\s+with\s+(\d+)\s+[\w\s]*?items?/i);
+  if (m) return { type: 'qty', qty: parseInt(m[2], 10), value: parseFloat(m[1]) };
+  m = text.match(/buy\s+(\d+),?\s+get\s+a?\s*\$(\d+(?:\.\d{2})?)\s+target\s+gift\s?card/i);
   if (m) return { type: 'qty', qty: parseInt(m[1], 10), value: parseFloat(m[2]) };
   m = text.match(/spend\s+\$(\d+(?:\.\d{2})?),?\s+get\s+a?\s*\$(\d+(?:\.\d{2})?)\s+target\s+gift\s?card/i);
   if (m) return { type: 'spend', threshold: parseFloat(m[1]), value: parseFloat(m[2]) };
