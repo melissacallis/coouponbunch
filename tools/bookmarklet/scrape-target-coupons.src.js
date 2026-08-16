@@ -27,9 +27,9 @@
  *   python tools/import_target_coupons.py
  */
 (async () => {
-  const SCROLL_ROUNDS_BEFORE_GIVING_UP = 4;
-  const MAX_SCROLL_ROUNDS = 60;
-  const WAIT_AFTER_SCROLL_MS = 1000;
+  const NO_GROWTH_ROUNDS_BEFORE_GIVING_UP = 4;
+  const MAX_ROUNDS = 60;
+  const WAIT_AFTER_ACTION_MS = 1500;
 
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -125,6 +125,18 @@
     return m ? m[1] : '';
   }
 
+  // The offers page paginates via a "Load more" button (confirmed against
+  // the real page) rather than infinite scroll — clicking it repeatedly
+  // appends the next batch. Scrolling to the bottom first (below) helps
+  // ensure the button itself is actually in view/clickable.
+  function findLoadMoreControl() {
+    const candidates = Array.from(document.querySelectorAll('a, button')).filter((el) => {
+      const text = (el.textContent || '').trim().toLowerCase();
+      return /load more|see more|show more|more offers/i.test(text);
+    });
+    return candidates.find((el) => el.offsetParent !== null && !el.disabled) || null; // visible, enabled only
+  }
+
   function scrapeCards() {
     const cards = firstMatching(CANDIDATE_CARD_SELECTORS);
     const coupons = [];
@@ -159,22 +171,29 @@
     return coupons;
   }
 
-  // Repeatedly scrolls to the bottom of the page, re-scraping after each
-  // scroll to pick up any offer tiles that just lazy-loaded, and stops once
-  // several scrolls in a row produce no new offers (or the round cap hits).
+  // Re-scrapes after each round to pick up newly-appeared offer tiles,
+  // clicking a "Load more" button if one is present (confirmed the real
+  // pagination mechanism on the offers page) or scrolling to the bottom as
+  // a fallback if not. Stops once several rounds in a row produce no new
+  // offers (button gone, or genuinely no more content either way).
   async function scrapeAllCards(overlay) {
     const byId = new Map();
     let noGrowthRounds = 0;
 
-    for (let round = 1; round <= MAX_SCROLL_ROUNDS && noGrowthRounds < SCROLL_ROUNDS_BEFORE_GIVING_UP; round++) {
+    for (let round = 1; round <= MAX_ROUNDS && noGrowthRounds < NO_GROWTH_ROUNDS_BEFORE_GIVING_UP; round++) {
       const before = byId.size;
       for (const c of scrapeCards()) byId.set(c.id, c);
-      setStatus(overlay, `Scrolling for more offers… ${byId.size} found so far…`);
+      setStatus(overlay, `Loading more offers… ${byId.size} found so far…`);
 
       noGrowthRounds = byId.size > before ? 0 : noGrowthRounds + 1;
 
-      window.scrollTo(0, document.body.scrollHeight);
-      await sleep(WAIT_AFTER_SCROLL_MS);
+      const loadMoreBtn = findLoadMoreControl();
+      if (loadMoreBtn) {
+        loadMoreBtn.click();
+      } else {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+      await sleep(WAIT_AFTER_ACTION_MS);
     }
 
     return Array.from(byId.values());
