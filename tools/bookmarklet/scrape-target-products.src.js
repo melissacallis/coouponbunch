@@ -15,10 +15,21 @@
  * value can't be computed without one.
  *
  * Usage: click the bookmark, it captures the current page's gift-card
- * products and downloads "target-products-raw.json". Then run:
+ * products and downloads "target-products-raw.json" (also copies the JSON
+ * to your clipboard and exposes it as window.__couponBunchTargetProducts as
+ * fallbacks, in case the browser silently blocks the download — run
+ * `copy(__couponBunchTargetProducts)` in the Console to grab it reliably
+ * either way). Then run:
  *   python tools/import_target_products.py
  */
-(() => {
+(async () => {
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), ms)),
+    ]);
+  }
+
   // Verified against real target.com product-listing markup (2026-08) — the
   // first entry in each list is the confirmed selector; the rest are kept as
   // fallbacks in case Target changes their markup again.
@@ -162,7 +173,9 @@
     products,
   };
 
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const jsonText = JSON.stringify(payload, null, 2);
+  window.__couponBunchTargetProducts = jsonText;
+  const blob = new Blob([jsonText], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -172,6 +185,16 @@
   a.remove();
   URL.revokeObjectURL(url);
 
-  overlay.innerHTML = `✅ ${products.length} gift-card product(s) saved to target-products-raw.json.<br><br>Now run: python tools/import_target_products.py`;
+  let clipboardNote = '';
+  try {
+    await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
+    clipboardNote = ' Also copied to your clipboard.';
+  } catch (e) {
+    // clipboard permission denied, unsupported, or timed out — the download
+    // attempt above and window.__couponBunchTargetProducts are still available
+  }
+
+  overlay.innerHTML = `✅ ${products.length} gift-card product(s) saved to target-products-raw.json.${clipboardNote}<br><br>Now run: python tools/import_target_products.py`;
+  console.log(jsonText);
   setTimeout(() => overlay.remove(), 15000);
 })();
