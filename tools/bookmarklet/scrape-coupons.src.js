@@ -67,13 +67,19 @@
   // because stray badge text happened to appear in the scanned region.
   function extractValue(title, cardText) {
     let m = title.match(/\$(\d+(?:\.\d{2})?)\s+off\s+your\s+basket\s+when\s+you\s+buy\s+\$(\d+(?:\.\d{2})?)/i);
-    if (m) return `$${m[1]} off $${m[2]}`;
+    if (m) return `$${m[1]} off $${m[2]} (select items)`;
 
     // "Save $2.00 on ONE Dove..." is a common alternate phrasing for a flat
-    // dollar-off coupon — normalize it to "$2.00 off" so it still matches
-    // the "$X off" pattern the savings-calculator logic looks for.
+    // dollar-off coupon — normalize it to "$2 off" (stripping a whole-dollar
+    // ".00") so it still matches the "$X off" pattern the savings-calculator
+    // logic looks for.
     m = title.match(/Save\s+\$(\d+(?:\.\d{2})?)/i);
-    if (m) return `$${m[1]} off`;
+    if (m) return `$${m[1].replace(/\.00$/, '')} off`;
+
+    // Same normalization for the cents-off phrasing, e.g. "Save 50¢ on
+    // SEVEN (7)..." -> "50¢ off".
+    m = title.match(/Save\s+(\d+)¢/i);
+    if (m) return `${m[1]}¢ off`;
 
     const patterns = [
       /\$\d+(?:\.\d{2})?\s+off(\s+\d+)?/i,
