@@ -17,7 +17,9 @@
  * the CANDIDATE_* selectors below, then re-run
  * `python tools/bookmarklet/build.py`.
  *
- * Usage: click the bookmark, it captures the current page's offers and
+ * Usage: click the bookmark, it captures the current page's offers,
+ * scrolling down repeatedly to trigger and collect any lazy-loaded offers
+ * further down the page (like the H-E-B coupon scraper does), then
  * downloads "target-coupons-raw.json" (and copies the same JSON to your
  * clipboard as a fallback, in case the browser silently blocks the
  * automatic download — paste it into a new file of that name if so). Then
@@ -25,6 +27,28 @@
  *   python tools/import_target_coupons.py
  */
 (async () => {
+  const SCROLL_ROUNDS_BEFORE_GIVING_UP = 4;
+  const MAX_SCROLL_ROUNDS = 60;
+  const WAIT_AFTER_SCROLL_MS = 1000;
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // If a browser doesn't resolve the clipboard-write permission quickly
+  // (e.g. the page's user-activation window from the original click has
+  // lapsed by the time this runs, after the scroll loop above), awaiting
+  // navigator.clipboard.writeText() directly can hang indefinitely with no
+  // error — which would silently block the success message and JSON
+  // console.log below from ever running. Racing it against a timeout
+  // guarantees the rest of the script always completes either way.
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), ms)),
+    ]);
+  }
+
   const CANDIDATE_CARD_SELECTORS = [
     '[data-test^="item-card-"]',
     '[data-test="offer-card"]',
@@ -54,6 +78,10 @@
     ].join(';');
     document.body.appendChild(el);
     return el;
+  }
+
+  function setStatus(overlay, text) {
+    overlay.textContent = text;
   }
 
   function firstMatching(selectors, root = document) {
@@ -131,6 +159,27 @@
     return coupons;
   }
 
+  // Repeatedly scrolls to the bottom of the page, re-scraping after each
+  // scroll to pick up any offer tiles that just lazy-loaded, and stops once
+  // several scrolls in a row produce no new offers (or the round cap hits).
+  async function scrapeAllCards(overlay) {
+    const byId = new Map();
+    let noGrowthRounds = 0;
+
+    for (let round = 1; round <= MAX_SCROLL_ROUNDS && noGrowthRounds < SCROLL_ROUNDS_BEFORE_GIVING_UP; round++) {
+      const before = byId.size;
+      for (const c of scrapeCards()) byId.set(c.id, c);
+      setStatus(overlay, `Scrolling for more offers… ${byId.size} found so far…`);
+
+      noGrowthRounds = byId.size > before ? 0 : noGrowthRounds + 1;
+
+      window.scrollTo(0, document.body.scrollHeight);
+      await sleep(WAIT_AFTER_SCROLL_MS);
+    }
+
+    return Array.from(byId.values());
+  }
+
   // --- main ---
   if (!location.hostname.endsWith('target.com')) {
     const overlay = makeOverlay();
@@ -138,8 +187,9 @@
     return;
   }
 
-  const coupons = scrapeCards();
   const overlay = makeOverlay();
+  setStatus(overlay, 'Scanning for offers…');
+  const coupons = await scrapeAllCards(overlay);
 
   if (coupons.length === 0) {
     overlay.innerHTML =
@@ -174,12 +224,17 @@
   // way to get the data out, even if the file never appears anywhere.
   let clipboardNote = '';
   try {
-    await navigator.clipboard.writeText(jsonText);
+    await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
     clipboardNote = ' Also copied to your clipboard — if no file downloaded, paste it into a new file named target-coupons-raw.json.';
   } catch (e) {
-    // clipboard permission denied — the download attempt above is still the primary path
+    // clipboard permission denied, unsupported, or timed out — the download
+    // attempt above and the console.log below are still available
   }
 
   overlay.innerHTML = `✅ ${coupons.length} offer(s) saved to target-coupons-raw.json.${clipboardNote}<br><br>Now run: python tools/import_target_coupons.py`;
+  // Third fallback, in case both the download and the clipboard copy are
+  // blocked: the full JSON is always available by scrolling up in the
+  // Console after the overlay above confirms how many offers were found.
+  console.log(jsonText);
   setTimeout(() => overlay.remove(), 15000);
 })();
