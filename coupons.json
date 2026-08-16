@@ -3,7 +3,7 @@
   "source_url": "https://www.heb.com/digital-coupon/coupon-selection/all-coupons?cursor=94VCjK2VD91&pageName=all-coupons",
   "source": "bookmarklet",
   "total_coupons": 1032,
-  "last_scrape_status": "success",
+  "last_scrape_status": "failed",
   "featured_stackable_candidates": [
     {
       "id": "84054347",
@@ -8263,5 +8263,7 @@
       "limit": "Limit 1 per customer",
       "url": "https://www.heb.com/digital-coupon/coupon-detail/84051395"
     }
-  ]
+  ],
+  "last_scrape_error": "Detected an Incapsula challenge/block page instead of coupon content. The opportunistic Actions scrape got flagged this run \u2014 use the bookmarklet (tools/bookmarklet/) to refresh coupons.json instead.",
+  "last_scrape_attempted_at": "2026-08-16T08:38:03.526622+00:00"
 }
