@@ -18,10 +18,13 @@
  * `python tools/bookmarklet/build.py`.
  *
  * Usage: click the bookmark, it captures the current page's offers and
- * downloads "target-coupons-raw.json". Then run:
+ * downloads "target-coupons-raw.json" (and copies the same JSON to your
+ * clipboard as a fallback, in case the browser silently blocks the
+ * automatic download — paste it into a new file of that name if so). Then
+ * run:
  *   python tools/import_target_coupons.py
  */
-(() => {
+(async () => {
   const CANDIDATE_CARD_SELECTORS = [
     '[data-test^="item-card-"]',
     '[data-test="offer-card"]',
@@ -155,7 +158,8 @@
     coupons,
   };
 
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const jsonText = JSON.stringify(payload, null, 2);
+  const blob = new Blob([jsonText], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -165,6 +169,17 @@
   a.remove();
   URL.revokeObjectURL(url);
 
-  overlay.innerHTML = `✅ ${coupons.length} offer(s) saved to target-coupons-raw.json.<br><br>Now run: python tools/import_target_coupons.py`;
+  // Some browsers silently block a bookmarklet-triggered download with no
+  // visible warning. Copying to the clipboard too means there's always a
+  // way to get the data out, even if the file never appears anywhere.
+  let clipboardNote = '';
+  try {
+    await navigator.clipboard.writeText(jsonText);
+    clipboardNote = ' Also copied to your clipboard — if no file downloaded, paste it into a new file named target-coupons-raw.json.';
+  } catch (e) {
+    // clipboard permission denied — the download attempt above is still the primary path
+  }
+
+  overlay.innerHTML = `✅ ${coupons.length} offer(s) saved to target-coupons-raw.json.${clipboardNote}<br><br>Now run: python tools/import_target_coupons.py`;
   setTimeout(() => overlay.remove(), 15000);
 })();
