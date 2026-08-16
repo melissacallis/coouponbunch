@@ -228,6 +228,12 @@
   };
 
   const jsonText = JSON.stringify(payload, null, 2);
+  // Exposed as a global so it can be reliably grabbed later with DevTools'
+  // own `copy(__couponBunchTargetCoupons)` console command if the download
+  // and clipboard-API attempts below both fail — that command copies the
+  // full value regardless of length, unlike manually selecting console
+  // output text (which can miss the start/end of a long printed string).
+  window.__couponBunchTargetCoupons = jsonText;
   const blob = new Blob([jsonText], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
