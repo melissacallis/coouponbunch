@@ -49,6 +49,30 @@
     ]);
   }
 
+  // File downloads triggered from a bookmarklet get silently blocked in some
+  // browser setups with no visible warning at all — this sidesteps that
+  // entirely. Opens a new tab with the JSON already selected in a text box,
+  // so the user just presses Ctrl+C and pastes it wherever they need it
+  // (a file, or straight into a chat with Claude) — no DevTools required.
+  function openCopyTab(title, text) {
+    const win = window.open('', '_blank');
+    if (!win) return false; // popup blocked
+    win.document.title = title;
+    win.document.body.style.cssText =
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:20px;' +
+      'background:#1b1b1b;color:#fff;box-sizing:border-box;';
+    win.document.body.innerHTML =
+      '<p style="font-size:15px;margin:0 0 12px;">✅ Done — this text is already selected. ' +
+      'Press <b>Ctrl+C</b> (or <b>Cmd+C</b> on Mac) to copy it, then paste it wherever you need it.</p>' +
+      '<textarea id="cb-out" readonly style="width:100%;height:75vh;font:12px/1.4 monospace;' +
+      'padding:10px;box-sizing:border-box;background:#111;color:#0f0;border:1px solid #444;"></textarea>';
+    const ta = win.document.getElementById('cb-out');
+    ta.value = text;
+    ta.focus();
+    ta.select();
+    return true;
+  }
+
   const CANDIDATE_CARD_SELECTORS = [
     '[data-test^="item-card-"]',
     '[data-test="offer-card"]',
@@ -228,38 +252,36 @@
   };
 
   const jsonText = JSON.stringify(payload, null, 2);
-  // Exposed as a global so it can be reliably grabbed later with DevTools'
-  // own `copy(__couponBunchTargetCoupons)` console command if the download
-  // and clipboard-API attempts below both fail — that command copies the
-  // full value regardless of length, unlike manually selecting console
-  // output text (which can miss the start/end of a long printed string).
-  window.__couponBunchTargetCoupons = jsonText;
-  const blob = new Blob([jsonText], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'target-coupons-raw.json';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  window.__couponBunchTargetCoupons = jsonText; // for `copy(__couponBunchTargetCoupons)` in DevTools, if ever needed
 
-  // Some browsers silently block a bookmarklet-triggered download with no
-  // visible warning. Copying to the clipboard too means there's always a
-  // way to get the data out, even if the file never appears anywhere.
-  let clipboardNote = '';
+  // Primary path: open a new tab with the JSON pre-selected in a text box —
+  // works with no DevTools and doesn't depend on the browser allowing a
+  // bookmarklet-triggered file download, which has proven unreliable.
+  const openedCopyTab = openCopyTab(
+    `CouponBunch — ${coupons.length} Target offers (copy this)`,
+    jsonText
+  );
+
+  // Best-effort extras underneath — silent if blocked, since the copy tab
+  // above is the one thing this flow actually depends on working.
+  try {
+    const blob = new Blob([jsonText], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'target-coupons-raw.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {}
   try {
     await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
-    clipboardNote = ' Also copied to your clipboard — if no file downloaded, paste it into a new file named target-coupons-raw.json.';
-  } catch (e) {
-    // clipboard permission denied, unsupported, or timed out — the download
-    // attempt above and the console.log below are still available
-  }
+  } catch (e) {}
 
-  overlay.innerHTML = `✅ ${coupons.length} offer(s) saved to target-coupons-raw.json.${clipboardNote}<br><br>Now run: python tools/import_target_coupons.py`;
-  // Third fallback, in case both the download and the clipboard copy are
-  // blocked: the full JSON is always available by scrolling up in the
-  // Console after the overlay above confirms how many offers were found.
+  overlay.innerHTML = openedCopyTab
+    ? `✅ ${coupons.length} offer(s) found. A new tab opened with the data — press Ctrl+C there and paste it wherever you need it.`
+    : `✅ ${coupons.length} offer(s) found, but the popup was blocked. Allow popups for this site and try again, or check your Downloads folder / clipboard.`;
   console.log(jsonText);
   setTimeout(() => overlay.remove(), 15000);
 })();

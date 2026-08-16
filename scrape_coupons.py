@@ -74,6 +74,7 @@ VALUE_PATTERNS = [
     re.compile(r"Combo Loco", re.I),
 ]
 SAVE_DOLLAR_RE = re.compile(r"Save\s+\$(\d+(?:\.\d{2})?)", re.I)
+SAVE_CENTS_RE = re.compile(r"Save\s+(\d+)¢", re.I)
 BASKET_SENTENCE_RE = re.compile(
     r"\$(\d+(?:\.\d{2})?)\s+off\s+your\s+basket\s+when\s+you\s+buy\s+\$(\d+(?:\.\d{2})?)", re.I
 )
@@ -102,14 +103,24 @@ def extract_value(title, card_text):
     """
     m = BASKET_SENTENCE_RE.search(title)
     if m:
-        return f"${m.group(1)} off ${m.group(2)}"
+        return f"${m.group(1)} off ${m.group(2)} (select items)"
 
     # "Save $2.00 on ONE Dove..." is a common alternate phrasing for a flat
-    # dollar-off coupon — normalize it to "$2.00 off" so it still matches
-    # the "$X off" pattern the savings-calculator logic looks for.
+    # dollar-off coupon — normalize it to "$2 off" (stripping a whole-dollar
+    # ".00") so it still matches the "$X off" pattern the savings-calculator
+    # logic looks for.
     m = SAVE_DOLLAR_RE.search(title)
     if m:
-        return f"${m.group(1)} off"
+        amount = m.group(1)
+        if amount.endswith(".00"):
+            amount = amount[:-3]
+        return f"${amount} off"
+
+    # Same normalization for the cents-off phrasing, e.g. "Save 50¢ on
+    # SEVEN (7)..." -> "50¢ off".
+    m = SAVE_CENTS_RE.search(title)
+    if m:
+        return f"{m.group(1)}¢ off"
 
     for source in (title, card_text):
         for pattern in VALUE_PATTERNS:

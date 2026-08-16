@@ -15,8 +15,11 @@
  * this file's contents directly into the browser DevTools Console on that
  * page (identical effect).
  *
- * When it finishes, it downloads "heb-coupons-raw.json" to your Downloads
- * folder. Then run: python tools/import_coupons.py
+ * When it finishes, it opens a new tab with the JSON already selected in a
+ * text box — Ctrl+C copies it immediately, no Downloads-folder hunting or
+ * DevTools needed (a plain file download is still attempted as a silent
+ * bonus underneath, in case that works fine in your browser). Save it as
+ * heb-coupons-raw.json, then run: python tools/import_coupons.py
  */
 (async () => {
   const CARD_SELECTOR = 'a[href*="/digital-coupon/coupon-detail/"]';
@@ -64,13 +67,19 @@
   // because stray badge text happened to appear in the scanned region.
   function extractValue(title, cardText) {
     let m = title.match(/\$(\d+(?:\.\d{2})?)\s+off\s+your\s+basket\s+when\s+you\s+buy\s+\$(\d+(?:\.\d{2})?)/i);
-    if (m) return `$${m[1]} off $${m[2]}`;
+    if (m) return `$${m[1]} off $${m[2]} (select items)`;
 
     // "Save $2.00 on ONE Dove..." is a common alternate phrasing for a flat
-    // dollar-off coupon — normalize it to "$2.00 off" so it still matches
-    // the "$X off" pattern the savings-calculator logic looks for.
+    // dollar-off coupon — normalize it to "$2 off" (stripping a whole-dollar
+    // ".00") so it still matches the "$X off" pattern the savings-calculator
+    // logic looks for.
     m = title.match(/Save\s+\$(\d+(?:\.\d{2})?)/i);
-    if (m) return `$${m[1]} off`;
+    if (m) return `$${m[1].replace(/\.00$/, '')} off`;
+
+    // Same normalization for the cents-off phrasing, e.g. "Save 50¢ on
+    // SEVEN (7)..." -> "50¢ off".
+    m = title.match(/Save\s+(\d+)¢/i);
+    if (m) return `${m[1]}¢ off`;
 
     const patterns = [
       /\$\d+(?:\.\d{2})?\s+off(\s+\d+)?/i,
@@ -160,6 +169,30 @@
     URL.revokeObjectURL(url);
   }
 
+  // File downloads triggered from a bookmarklet get silently blocked in some
+  // browser setups with no visible warning at all. This sidesteps that
+  // entirely: opens a new tab with the JSON already selected in a text box,
+  // so the user just presses Ctrl+C and pastes it wherever they need it —
+  // no DevTools required.
+  function openCopyTab(title, text) {
+    const win = window.open('', '_blank');
+    if (!win) return false; // popup blocked
+    win.document.title = title;
+    win.document.body.style.cssText =
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:20px;' +
+      'background:#1b1b1b;color:#fff;box-sizing:border-box;';
+    win.document.body.innerHTML =
+      '<p style="font-size:15px;margin:0 0 12px;">✅ Done — this text is already selected. ' +
+      'Press <b>Ctrl+C</b> (or <b>Cmd+C</b> on Mac) to copy it, then paste it wherever you need it.</p>' +
+      '<textarea id="cb-out" readonly style="width:100%;height:75vh;font:12px/1.4 monospace;' +
+      'padding:10px;box-sizing:border-box;background:#111;color:#0f0;border:1px solid #444;"></textarea>';
+    const ta = win.document.getElementById('cb-out');
+    ta.value = text;
+    ta.focus();
+    ta.select();
+    return true;
+  }
+
   // --- main ---
   const overlay = makeOverlay();
 
@@ -213,11 +246,19 @@
     coupons: allCoupons,
   };
 
-  downloadJSON('heb-coupons-raw.json', payload);
+  const openedCopyTab = openCopyTab(
+    `CouponBunch — ${allCoupons.length} H-E-B coupons (copy this)`,
+    JSON.stringify(payload, null, 2)
+  );
+  try {
+    downloadJSON('heb-coupons-raw.json', payload); // best-effort bonus, silent if blocked
+  } catch (e) {}
+
   setStatus(
     overlay,
-    `✅ Done! ${allCoupons.length} coupons saved to heb-coupons-raw.json.\n\n` +
-      'Now run: python tools/import_coupons.py'
+    openedCopyTab
+      ? `✅ ${allCoupons.length} coupons found. A new tab opened with the data — press Ctrl+C there and paste it wherever you need it.`
+      : `✅ ${allCoupons.length} coupons found, but the popup was blocked. Allow popups for this site and try again, or check your Downloads folder.`
   );
   setTimeout(() => overlay.remove(), 15000);
 })();
