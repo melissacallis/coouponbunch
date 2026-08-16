@@ -468,7 +468,7 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
 <div class="bookmarklet-card">
   <h2>🎯 Scrape Target Gift-Card Products</h2>
   <p class="run-on">Run on: a Target product-listing page filtered to gift-card promos, while logged in</p>
-  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20Target%20product-scraping%20bookmarklet%20%E2%80%94%20source%20%28readable%29%20version.%0A%20%2A%0A%20%2A%20Run%20this%20on%20a%20Target%20product-listing%20page%20%28e.g.%20a%20category%20filtered%20to%0A%20%2A%20gift-card%20promo%20items%2C%20like%20target.com/pl/.../%3FfacetedValue%3D...%29%2C%20while%0A%20%2A%20logged%20in.%20Selectors%20are%20a%20best%20guess%20%E2%80%94%20this%20sandbox%20has%20no%20network%20access%0A%20%2A%20to%20target.com%20to%20verify%20real%20markup%20against.%20If%20it%20finds%20zero%20products%2C%0A%20%2A%20inspect%20a%20product%20card%20in%20DevTools%20and%20update%20the%20CANDIDATE_%2A%20selectors%0A%20%2A%20below%2C%20then%20re-run%20%60python%20tools/bookmarklet/build.py%60.%0A%20%2A%0A%20%2A%20It%20only%20keeps%20products%20that%20actually%20show%20a%20%22Buy%20X%20/%20Spend%20%24Y%2C%20Get%20a%0A%20%2A%20Target%20GiftCard%22%20badge%20%E2%80%94%20that%27s%20the%20whole%20point%20of%20this%20page%2C%20so%20products%0A%20%2A%20without%20one%20are%20silently%20skipped%20rather%20than%20cluttering%20the%20export.%0A%20%2A%0A%20%2A%20Usage%3A%20click%20the%20bookmark%2C%20it%20captures%20the%20current%20page%27s%20gift-card%0A%20%2A%20products%20and%20downloads%20%22target-products-raw.json%22.%20Then%20run%3A%0A%20%2A%20%20%20python%20tools/import_target_products.py%0A%20%2A/%0A%28%28%29%20%3D%3E%20%7B%0A%20%20const%20CANDIDATE_CARD_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22product-card%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%2A%3D%22ProductCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22ProductCardWrapper%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22styles_cardWrapper%22%5D%27%2C%0A%20%20%20%20%27li%5Bclass%2A%3D%22product%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_NAME_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22product-title%22%5D%27%2C%20%27%5Bdata-test%2A%3D%22title%22%5D%27%2C%20%27a%5Bhref%2A%3D%22/p/%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_PRICE_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22product-price%22%5D%27%2C%20%27%5Bdata-test%2A%3D%22price%22%5D%27%2C%20%27%5Bclass%2A%3D%22Price%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_PROMO_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%2A%3D%22giftcard%22%5D%27%2C%20%27%5Bdata-test%2A%3D%22GiftCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22GiftCard%22%5D%27%2C%20%27%5Bclass%2A%3D%22giftcard%22%5D%27%2C%20%27%5Bclass%2A%3D%22Promotion%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_IMAGE_SELECTORS%20%3D%20%5B%27img%27%5D%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-target-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20firstMatching%28selectors%2C%20root%20%3D%20document%29%20%7B%0A%20%20%20%20for%20%28const%20sel%20of%20selectors%29%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20const%20els%20%3D%20root.querySelectorAll%28sel%29%3B%0A%20%20%20%20%20%20%20%20if%20%28els.length%20%3E%200%29%20return%20Array.from%28els%29%3B%0A%20%20%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%20%20//%20invalid%20selector%20for%20this%20browser%20%E2%80%94%20skip%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20%5B%5D%3B%0A%20%20%7D%0A%0A%20%20function%20extractPrice%28text%29%20%7B%0A%20%20%20%20const%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20parseFloat%28m%5B1%5D%29%20%3A%20null%3B%0A%20%20%7D%0A%0A%20%20function%20extractId%28card%29%20%7B%0A%20%20%20%20const%20link%20%3D%20card.querySelector%28%27a%5Bhref%2A%3D%22/p/%22%5D%27%29%20%7C%7C%20card.querySelector%28%27a%5Bhref%2A%3D%22/A-%22%5D%27%29%3B%0A%20%20%20%20if%20%28%21link%29%20return%20null%3B%0A%20%20%20%20const%20m%20%3D%20%28link.getAttribute%28%27href%27%29%20%7C%7C%20%27%27%29.match%28/A-%28%5Cd%2B%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20%60A-%24%7Bm%5B1%5D%7D%60%20%3A%20null%3B%0A%20%20%7D%0A%0A%20%20function%20guessBrand%28name%29%20%7B%0A%20%20%20%20//%20First%20word/phrase%20of%20the%20product%20name%20is%20usually%20the%20brand%20on%20Target%27s%0A%20%20%20%20//%20listings%20%28e.g.%20%22Tide%20Liquid%20Laundry%20Detergent...%22%20-%3E%20%22Tide%22%29.%20Not%0A%20%20%20%20//%20perfect%2C%20but%20a%20reasonable%20default%20%E2%80%94%20edit%20per-product%20in%20the%20JSON%20if%20wrong.%0A%20%20%20%20if%20%28%21name%29%20return%20%27%27%3B%0A%20%20%20%20return%20name.split%28/%5Cs%2B/%29.slice%280%2C%201%29.join%28%27%20%27%29%3B%0A%20%20%7D%0A%0A%20%20function%20scrapeCards%28%29%20%7B%0A%20%20%20%20const%20cards%20%3D%20firstMatching%28CANDIDATE_CARD_SELECTORS%29%3B%0A%20%20%20%20const%20products%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20card%20of%20cards%29%20%7B%0A%20%20%20%20%20%20const%20promoEl%20%3D%20firstMatching%28CANDIDATE_PROMO_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20promoText%20%3D%20promoEl%20%3F%20promoEl.textContent.trim%28%29%20%3A%20%27%27%3B%0A%20%20%20%20%20%20if%20%28%21/target%5Cs%2Agift%5Cs%2Acard/i.test%28promoText%29%29%20continue%3B%20//%20only%20keep%20gift-card%20products%0A%0A%20%20%20%20%20%20const%20nameEl%20%3D%20firstMatching%28CANDIDATE_NAME_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20priceEl%20%3D%20firstMatching%28CANDIDATE_PRICE_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20imgEl%20%3D%20firstMatching%28CANDIDATE_IMAGE_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20linkEl%20%3D%20card.querySelector%28%27a%5Bhref%2A%3D%22/p/%22%5D%27%29%3B%0A%0A%20%20%20%20%20%20const%20name%20%3D%20nameEl%20%3F%20nameEl.textContent.trim%28%29%20%3A%20%27%27%3B%0A%20%20%20%20%20%20const%20price%20%3D%20priceEl%20%3F%20extractPrice%28priceEl.textContent%29%20%3A%20null%3B%0A%20%20%20%20%20%20if%20%28%21name%20%7C%7C%20price%20%3D%3D%20null%29%20continue%3B%0A%0A%20%20%20%20%20%20products.push%28%7B%0A%20%20%20%20%20%20%20%20id%3A%20extractId%28card%29%20%7C%7C%20%60%24%7Bname%7D-%24%7Bprice%7D%60%2C%0A%20%20%20%20%20%20%20%20name%2C%0A%20%20%20%20%20%20%20%20brand%3A%20guessBrand%28name%29%2C%0A%20%20%20%20%20%20%20%20price%2C%0A%20%20%20%20%20%20%20%20image%3A%20imgEl%20%3F%20imgEl.src%20%3A%20null%2C%0A%20%20%20%20%20%20%20%20gift_card_promo%3A%20promoText%2C%0A%20%20%20%20%20%20%20%20url%3A%20linkEl%20%3F%20new%20URL%28linkEl.getAttribute%28%27href%27%29%2C%20location.origin%29.href%20%3A%20location.href%2C%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20products%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20if%20%28%21location.hostname.endsWith%28%27target.com%27%29%29%20%7B%0A%20%20%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20%20%20overlay.textContent%20%3D%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20a%20target.com%20product-listing%20page%2C%20not%20here.%27%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20products%20%3D%20scrapeCards%28%29%3B%0A%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%0A%20%20if%20%28products.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20overlay.innerHTML%20%3D%0A%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20gift-card%20products%20found%20on%20this%20page.%20Either%20none%20of%20the%20visible%20%27%20%2B%0A%20%20%20%20%20%20%27products%20have%20a%20gift-card%20badge%2C%20or%20the%20CSS%20selectors%20in%20%27%20%2B%0A%20%20%20%20%20%20%27scrape-target-products.src.js%20need%20updating%20for%20Target%5C%27s%20current%20markup%20%27%20%2B%0A%20%20%20%20%20%20%27%E2%80%94%20inspect%20a%20product%20card%20and%20edit%20CANDIDATE_CARD_SELECTORS%20/%20%27%20%2B%0A%20%20%20%20%20%20%27CANDIDATE_PROMO_SELECTORS.%27%3B%0A%20%20%20%20console.warn%28%27%5BCouponBunch%5D%200%20gift-card%20products%20found.%20Selectors%20may%20need%20updating.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20source_url%3A%20location.href%2C%0A%20%20%20%20products%2C%0A%20%20%7D%3B%0A%0A%20%20const%20blob%20%3D%20new%20Blob%28%5BJSON.stringify%28payload%2C%20null%2C%202%29%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20a.href%20%3D%20url%3B%0A%20%20a.download%20%3D%20%27target-products-raw.json%27%3B%0A%20%20document.body.appendChild%28a%29%3B%0A%20%20a.click%28%29%3B%0A%20%20a.remove%28%29%3B%0A%20%20URL.revokeObjectURL%28url%29%3B%0A%0A%20%20overlay.innerHTML%20%3D%20%60%E2%9C%85%20%24%7Bproducts.length%7D%20gift-card%20product%28s%29%20saved%20to%20target-products-raw.json.%3Cbr%3E%3Cbr%3ENow%20run%3A%20python%20tools/import_target_products.py%60%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20overlay.remove%28%29%2C%2015000%29%3B%0A%7D%29%28%29%3B%0A">🎯 Scrape Target Gift-Card Products</a> ← drag this to your bookmarks bar</p>
+  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20Target%20product-scraping%20bookmarklet%20%E2%80%94%20source%20%28readable%29%20version.%0A%20%2A%0A%20%2A%20Run%20this%20on%20a%20Target%20product-listing%20page%20%28e.g.%20a%20category%20filtered%20to%0A%20%2A%20gift-card%20promo%20items%2C%20like%20target.com/pl/.../%3FfacetedValue%3D...%29%2C%20while%0A%20%2A%20logged%20in.%20Selectors%20are%20verified%20against%20real%20target.com%20markup%20captured%0A%20%2A%202026-08%20%28with%20best-guess%20fallbacks%20kept%20in%20case%20Target%20changes%20it%20again%20%E2%80%94%0A%20%2A%20if%20it%20finds%20zero%20products%2C%20inspect%20a%20product%20card%20in%20DevTools%20and%20update%0A%20%2A%20the%20CANDIDATE_%2A%20selectors%20below%2C%20then%20re-run%20%60python%20tools/bookmarklet/build.py%60%29.%0A%20%2A%0A%20%2A%20It%20only%20keeps%20products%20that%20actually%20show%20a%20Target%20GiftCard%20promo%20badge%20%E2%80%94%0A%20%2A%20that%27s%20the%20whole%20point%20of%20this%20page%2C%20so%20products%20without%20one%20are%20silently%0A%20%2A%20skipped%20rather%20than%20cluttering%20the%20export.%20Products%20showing%20%22See%20price%20in%0A%20%2A%20cart%22%20instead%20of%20a%20real%20price%20are%20also%20skipped%2C%20since%20a%20stack%27s%20dollar%0A%20%2A%20value%20can%27t%20be%20computed%20without%20one.%0A%20%2A%0A%20%2A%20Usage%3A%20click%20the%20bookmark%2C%20it%20captures%20the%20current%20page%27s%20gift-card%0A%20%2A%20products%20and%20downloads%20%22target-products-raw.json%22.%20Then%20run%3A%0A%20%2A%20%20%20python%20tools/import_target_products.py%0A%20%2A/%0A%28%28%29%20%3D%3E%20%7B%0A%20%20//%20Verified%20against%20real%20target.com%20product-listing%20markup%20%282026-08%29%20%E2%80%94%20the%0A%20%20//%20first%20entry%20in%20each%20list%20is%20the%20confirmed%20selector%3B%20the%20rest%20are%20kept%20as%0A%20%20//%20fallbacks%20in%20case%20Target%20changes%20their%20markup%20again.%0A%20%20const%20CANDIDATE_CARD_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22%40web/site-top-of-funnel/ProductCardWrapper%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%3D%22product-card%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%2A%3D%22ProductCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22ProductCardWrapper%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22styles_cardWrapper%22%5D%27%2C%0A%20%20%20%20%27li%5Bclass%2A%3D%22product%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_NAME_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22%40web/ProductCard/title%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%3D%22product-title%22%5D%27%2C%20%27%5Bdata-test%2A%3D%22title%22%5D%27%2C%20%27a%5Bhref%2A%3D%22/p/%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_PRICE_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22current-price%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%3D%22product-price%22%5D%27%2C%20%27%5Bdata-test%2A%3D%22price%22%5D%27%2C%20%27%5Bclass%2A%3D%22Price%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20//%20The%20promo%20text%20itself%20%28e.g.%20%22%2415%20Target%20GiftCard%20with%20%2450%20household%0A%20%20//%20items%20purchase%22%29%20is%20what%20actually%20gets%20checked%20for%20%22target%20gift%20card%22%20%E2%80%94%0A%20%20//%20this%20selector%20just%20needs%20to%20find%20%2Athat%2A%20text%2C%20regardless%20of%20what%20the%0A%20%20//%20wrapping%20element%27s%20class/data-test%20happens%20to%20be%20named.%0A%20%20const%20CANDIDATE_PROMO_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22first-regular-promo%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%2A%3D%22giftcard%22%5D%27%2C%20%27%5Bdata-test%2A%3D%22GiftCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22GiftCard%22%5D%27%2C%20%27%5Bclass%2A%3D%22giftcard%22%5D%27%2C%20%27%5Bclass%2A%3D%22Promotion%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20//%20Target%27s%20product%20cards%20have%20a%20dedicated%20brand%20link%20%E2%80%94%20far%20more%20reliable%0A%20%20//%20than%20guessing%20the%20brand%20from%20the%20first%20word%20of%20the%20product%20name.%0A%20%20const%20CANDIDATE_BRAND_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22%40web/ProductCard/ProductCardBrandAndRibbonMessage/brand%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_IMAGE_SELECTORS%20%3D%20%5B%27img%27%5D%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-target-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20firstMatching%28selectors%2C%20root%20%3D%20document%29%20%7B%0A%20%20%20%20for%20%28const%20sel%20of%20selectors%29%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20const%20els%20%3D%20root.querySelectorAll%28sel%29%3B%0A%20%20%20%20%20%20%20%20if%20%28els.length%20%3E%200%29%20return%20Array.from%28els%29%3B%0A%20%20%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%20%20//%20invalid%20selector%20for%20this%20browser%20%E2%80%94%20skip%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20%5B%5D%3B%0A%20%20%7D%0A%0A%20%20function%20extractPrice%28text%29%20%7B%0A%20%20%20%20const%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20parseFloat%28m%5B1%5D%29%20%3A%20null%3B%0A%20%20%7D%0A%0A%20%20function%20extractId%28card%29%20%7B%0A%20%20%20%20const%20link%20%3D%20card.querySelector%28%27a%5Bhref%2A%3D%22/p/%22%5D%27%29%20%7C%7C%20card.querySelector%28%27a%5Bhref%2A%3D%22/A-%22%5D%27%29%3B%0A%20%20%20%20if%20%28%21link%29%20return%20null%3B%0A%20%20%20%20const%20m%20%3D%20%28link.getAttribute%28%27href%27%29%20%7C%7C%20%27%27%29.match%28/A-%28%5Cd%2B%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20%60A-%24%7Bm%5B1%5D%7D%60%20%3A%20null%3B%0A%20%20%7D%0A%0A%20%20function%20guessBrand%28name%29%20%7B%0A%20%20%20%20//%20Fallback%20only%2C%20used%20when%20CANDIDATE_BRAND_SELECTORS%20doesn%27t%20match%3A%0A%20%20%20%20//%20first%20word/phrase%20of%20the%20product%20name%20is%20usually%20the%20brand%20on%20Target%27s%0A%20%20%20%20//%20listings%20%28e.g.%20%22Tide%20Liquid%20Laundry%20Detergent...%22%20-%3E%20%22Tide%22%29.%20Not%0A%20%20%20%20//%20perfect%20%E2%80%94%20edit%20per-product%20in%20the%20JSON%20if%20wrong.%0A%20%20%20%20if%20%28%21name%29%20return%20%27%27%3B%0A%20%20%20%20return%20name.split%28/%5Cs%2B/%29.slice%280%2C%201%29.join%28%27%20%27%29%3B%0A%20%20%7D%0A%0A%20%20function%20scrapeCards%28%29%20%7B%0A%20%20%20%20const%20cards%20%3D%20firstMatching%28CANDIDATE_CARD_SELECTORS%29%3B%0A%20%20%20%20const%20products%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20card%20of%20cards%29%20%7B%0A%20%20%20%20%20%20const%20promoEl%20%3D%20firstMatching%28CANDIDATE_PROMO_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20promoText%20%3D%20promoEl%20%3F%20promoEl.textContent.trim%28%29%20%3A%20%27%27%3B%0A%20%20%20%20%20%20if%20%28%21/target%5Cs%2Agift%5Cs%2Acard/i.test%28promoText%29%29%20continue%3B%20//%20only%20keep%20gift-card%20products%0A%0A%20%20%20%20%20%20const%20nameEl%20%3D%20firstMatching%28CANDIDATE_NAME_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20priceEl%20%3D%20firstMatching%28CANDIDATE_PRICE_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20brandEl%20%3D%20firstMatching%28CANDIDATE_BRAND_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20imgEl%20%3D%20firstMatching%28CANDIDATE_IMAGE_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20linkEl%20%3D%20card.querySelector%28%27a%5Bhref%2A%3D%22/p/%22%5D%27%29%3B%0A%0A%20%20%20%20%20%20const%20name%20%3D%20nameEl%20%3F%20nameEl.textContent.trim%28%29%20%3A%20%27%27%3B%0A%20%20%20%20%20%20const%20priceText%20%3D%20priceEl%20%3F%20priceEl.textContent.trim%28%29%20%3A%20%27%27%3B%0A%20%20%20%20%20%20if%20%28/see%20price%20in%20cart/i.test%28priceText%29%29%20continue%3B%20//%20no%20price%20to%20compute%20a%20stack%20value%20with%0A%20%20%20%20%20%20const%20price%20%3D%20extractPrice%28priceText%29%3B%0A%20%20%20%20%20%20if%20%28%21name%20%7C%7C%20price%20%3D%3D%20null%29%20continue%3B%0A%0A%20%20%20%20%20%20products.push%28%7B%0A%20%20%20%20%20%20%20%20id%3A%20extractId%28card%29%20%7C%7C%20%60%24%7Bname%7D-%24%7Bprice%7D%60%2C%0A%20%20%20%20%20%20%20%20name%2C%0A%20%20%20%20%20%20%20%20brand%3A%20brandEl%20%3F%20brandEl.textContent.trim%28%29%20%3A%20guessBrand%28name%29%2C%0A%20%20%20%20%20%20%20%20price%2C%0A%20%20%20%20%20%20%20%20image%3A%20imgEl%20%3F%20imgEl.src%20%3A%20null%2C%0A%20%20%20%20%20%20%20%20gift_card_promo%3A%20promoText%2C%0A%20%20%20%20%20%20%20%20url%3A%20linkEl%20%3F%20new%20URL%28linkEl.getAttribute%28%27href%27%29%2C%20location.origin%29.href%20%3A%20location.href%2C%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20products%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20if%20%28%21location.hostname.endsWith%28%27target.com%27%29%29%20%7B%0A%20%20%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20%20%20overlay.textContent%20%3D%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20a%20target.com%20product-listing%20page%2C%20not%20here.%27%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20products%20%3D%20scrapeCards%28%29%3B%0A%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%0A%20%20if%20%28products.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20overlay.innerHTML%20%3D%0A%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20gift-card%20products%20found%20on%20this%20page.%20Either%20none%20of%20the%20visible%20%27%20%2B%0A%20%20%20%20%20%20%27products%20have%20a%20gift-card%20badge%2C%20or%20the%20CSS%20selectors%20in%20%27%20%2B%0A%20%20%20%20%20%20%27scrape-target-products.src.js%20need%20updating%20for%20Target%5C%27s%20current%20markup%20%27%20%2B%0A%20%20%20%20%20%20%27%E2%80%94%20inspect%20a%20product%20card%20and%20edit%20CANDIDATE_CARD_SELECTORS%20/%20%27%20%2B%0A%20%20%20%20%20%20%27CANDIDATE_PROMO_SELECTORS.%27%3B%0A%20%20%20%20console.warn%28%27%5BCouponBunch%5D%200%20gift-card%20products%20found.%20Selectors%20may%20need%20updating.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20source_url%3A%20location.href%2C%0A%20%20%20%20products%2C%0A%20%20%7D%3B%0A%0A%20%20const%20blob%20%3D%20new%20Blob%28%5BJSON.stringify%28payload%2C%20null%2C%202%29%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20a.href%20%3D%20url%3B%0A%20%20a.download%20%3D%20%27target-products-raw.json%27%3B%0A%20%20document.body.appendChild%28a%29%3B%0A%20%20a.click%28%29%3B%0A%20%20a.remove%28%29%3B%0A%20%20URL.revokeObjectURL%28url%29%3B%0A%0A%20%20overlay.innerHTML%20%3D%20%60%E2%9C%85%20%24%7Bproducts.length%7D%20gift-card%20product%28s%29%20saved%20to%20target-products-raw.json.%3Cbr%3E%3Cbr%3ENow%20run%3A%20python%20tools/import_target_products.py%60%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20overlay.remove%28%29%2C%2015000%29%3B%0A%7D%29%28%29%3B%0A">🎯 Scrape Target Gift-Card Products</a> ← drag this to your bookmarks bar</p>
   <ol class="steps">
     <li>Go to the page above, logged in.</li>
     <li>Click the bookmark. Watch the on-page progress box.</li>
@@ -483,21 +483,27 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
  *
  * Run this on a Target product-listing page (e.g. a category filtered to
  * gift-card promo items, like target.com/pl/.../?facetedValue=...), while
- * logged in. Selectors are a best guess — this sandbox has no network access
- * to target.com to verify real markup against. If it finds zero products,
- * inspect a product card in DevTools and update the CANDIDATE_* selectors
- * below, then re-run `python tools/bookmarklet/build.py`.
+ * logged in. Selectors are verified against real target.com markup captured
+ * 2026-08 (with best-guess fallbacks kept in case Target changes it again —
+ * if it finds zero products, inspect a product card in DevTools and update
+ * the CANDIDATE_* selectors below, then re-run `python tools/bookmarklet/build.py`).
  *
- * It only keeps products that actually show a &quot;Buy X / Spend $Y, Get a
- * Target GiftCard&quot; badge — that&#x27;s the whole point of this page, so products
- * without one are silently skipped rather than cluttering the export.
+ * It only keeps products that actually show a Target GiftCard promo badge —
+ * that&#x27;s the whole point of this page, so products without one are silently
+ * skipped rather than cluttering the export. Products showing &quot;See price in
+ * cart&quot; instead of a real price are also skipped, since a stack&#x27;s dollar
+ * value can&#x27;t be computed without one.
  *
  * Usage: click the bookmark, it captures the current page&#x27;s gift-card
  * products and downloads &quot;target-products-raw.json&quot;. Then run:
  *   python tools/import_target_products.py
  */
 (() =&gt; {
+  // Verified against real target.com product-listing markup (2026-08) — the
+  // first entry in each list is the confirmed selector; the rest are kept as
+  // fallbacks in case Target changes their markup again.
   const CANDIDATE_CARD_SELECTORS = [
+    &#x27;[data-test=&quot;@web/site-top-of-funnel/ProductCardWrapper&quot;]&#x27;,
     &#x27;[data-test=&quot;product-card&quot;]&#x27;,
     &#x27;[data-test*=&quot;ProductCard&quot;]&#x27;,
     &#x27;[class*=&quot;ProductCardWrapper&quot;]&#x27;,
@@ -505,14 +511,26 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
     &#x27;li[class*=&quot;product&quot;]&#x27;,
   ];
   const CANDIDATE_NAME_SELECTORS = [
+    &#x27;[data-test=&quot;@web/ProductCard/title&quot;]&#x27;,
     &#x27;[data-test=&quot;product-title&quot;]&#x27;, &#x27;[data-test*=&quot;title&quot;]&#x27;, &#x27;a[href*=&quot;/p/&quot;]&#x27;,
   ];
   const CANDIDATE_PRICE_SELECTORS = [
+    &#x27;[data-test=&quot;current-price&quot;]&#x27;,
     &#x27;[data-test=&quot;product-price&quot;]&#x27;, &#x27;[data-test*=&quot;price&quot;]&#x27;, &#x27;[class*=&quot;Price&quot;]&#x27;,
   ];
+  // The promo text itself (e.g. &quot;$15 Target GiftCard with $50 household
+  // items purchase&quot;) is what actually gets checked for &quot;target gift card&quot; —
+  // this selector just needs to find *that* text, regardless of what the
+  // wrapping element&#x27;s class/data-test happens to be named.
   const CANDIDATE_PROMO_SELECTORS = [
+    &#x27;[data-test=&quot;first-regular-promo&quot;]&#x27;,
     &#x27;[data-test*=&quot;giftcard&quot;]&#x27;, &#x27;[data-test*=&quot;GiftCard&quot;]&#x27;,
     &#x27;[class*=&quot;GiftCard&quot;]&#x27;, &#x27;[class*=&quot;giftcard&quot;]&#x27;, &#x27;[class*=&quot;Promotion&quot;]&#x27;,
+  ];
+  // Target&#x27;s product cards have a dedicated brand link — far more reliable
+  // than guessing the brand from the first word of the product name.
+  const CANDIDATE_BRAND_SELECTORS = [
+    &#x27;[data-test=&quot;@web/ProductCard/ProductCardBrandAndRibbonMessage/brand&quot;]&#x27;,
   ];
   const CANDIDATE_IMAGE_SELECTORS = [&#x27;img&#x27;];
 
@@ -554,9 +572,10 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
   }
 
   function guessBrand(name) {
-    // First word/phrase of the product name is usually the brand on Target&#x27;s
+    // Fallback only, used when CANDIDATE_BRAND_SELECTORS doesn&#x27;t match:
+    // first word/phrase of the product name is usually the brand on Target&#x27;s
     // listings (e.g. &quot;Tide Liquid Laundry Detergent...&quot; -&gt; &quot;Tide&quot;). Not
-    // perfect, but a reasonable default — edit per-product in the JSON if wrong.
+    // perfect — edit per-product in the JSON if wrong.
     if (!name) return &#x27;&#x27;;
     return name.split(/\s+/).slice(0, 1).join(&#x27; &#x27;);
   }
@@ -572,17 +591,20 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
 
       const nameEl = firstMatching(CANDIDATE_NAME_SELECTORS, card)[0];
       const priceEl = firstMatching(CANDIDATE_PRICE_SELECTORS, card)[0];
+      const brandEl = firstMatching(CANDIDATE_BRAND_SELECTORS, card)[0];
       const imgEl = firstMatching(CANDIDATE_IMAGE_SELECTORS, card)[0];
       const linkEl = card.querySelector(&#x27;a[href*=&quot;/p/&quot;]&#x27;);
 
       const name = nameEl ? nameEl.textContent.trim() : &#x27;&#x27;;
-      const price = priceEl ? extractPrice(priceEl.textContent) : null;
+      const priceText = priceEl ? priceEl.textContent.trim() : &#x27;&#x27;;
+      if (/see price in cart/i.test(priceText)) continue; // no price to compute a stack value with
+      const price = extractPrice(priceText);
       if (!name || price == null) continue;
 
       products.push({
         id: extractId(card) || `${name}-${price}`,
         name,
-        brand: guessBrand(name),
+        brand: brandEl ? brandEl.textContent.trim() : guessBrand(name),
         price,
         image: imgEl ? imgEl.src : null,
         gift_card_promo: promoText,
@@ -640,7 +662,7 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
 <div class="bookmarklet-card">
   <h2>🏷️ Scrape Target Coupons</h2>
   <p class="run-on">Run on: Target's Circle offers / coupons page, while logged in</p>
-  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20Target%20coupons/Circle-offers%20scraping%20bookmarklet%20%E2%80%94%20source%0A%20%2A%20%28readable%29%20version.%0A%20%2A%0A%20%2A%20Run%20this%20on%20Target%27s%20Circle%20offers%20/%20coupons%20page%20%28e.g.%0A%20%2A%20target.com/circle/offers%29%2C%20while%20logged%20in.%20Selectors%20are%20a%20best%20guess%20%E2%80%94%0A%20%2A%20this%20sandbox%20has%20no%20network%20access%20to%20target.com%20to%20verify%20real%20markup%0A%20%2A%20against.%20If%20it%20finds%20zero%20coupons%2C%20inspect%20an%20offer%20card%20in%20DevTools%20and%0A%20%2A%20update%20the%20CANDIDATE_%2A%20selectors%20below%2C%20then%20re-run%0A%20%2A%20%60python%20tools/bookmarklet/build.py%60.%0A%20%2A%0A%20%2A%20Usage%3A%20click%20the%20bookmark%2C%20it%20captures%20the%20current%20page%27s%20offers%20and%0A%20%2A%20downloads%20%22target-coupons-raw.json%22.%20Then%20run%3A%0A%20%2A%20%20%20python%20tools/import_target_coupons.py%0A%20%2A/%0A%28%28%29%20%3D%3E%20%7B%0A%20%20const%20CANDIDATE_CARD_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22offer-card%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%2A%3D%22OfferCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22OfferCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22offer-card%22%5D%27%2C%0A%20%20%20%20%27li%5Bclass%2A%3D%22offer%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_BRAND_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%2A%3D%22brand%22%5D%27%2C%20%27%5Bclass%2A%3D%22Brand%22%5D%27%2C%20%27%5Bclass%2A%3D%22brand%22%5D%27%2C%20%27h3%27%2C%20%27h4%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_DESC_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%2A%3D%22description%22%5D%27%2C%20%27%5Bdata-test%2A%3D%22title%22%5D%27%2C%20%27%5Bclass%2A%3D%22Description%22%5D%27%2C%20%27p%27%2C%0A%20%20%5D%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-target-coupons-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20firstMatching%28selectors%2C%20root%20%3D%20document%29%20%7B%0A%20%20%20%20for%20%28const%20sel%20of%20selectors%29%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20const%20els%20%3D%20root.querySelectorAll%28sel%29%3B%0A%20%20%20%20%20%20%20%20if%20%28els.length%20%3E%200%29%20return%20Array.from%28els%29%3B%0A%20%20%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%20%20//%20invalid%20selector%20for%20this%20browser%20%E2%80%94%20skip%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20%5B%5D%3B%0A%20%20%7D%0A%0A%20%20function%20extractValue%28text%29%20%7B%0A%20%20%20%20let%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Boff/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20m%5B0%5D%3B%0A%20%20%20%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5Cd%2B%25%5Cs%2Boff/i%29%3B%0A%20%20%20%20return%20m%20%3F%20m%5B0%5D%20%3A%20%27%27%3B%0A%20%20%7D%0A%0A%20%20function%20scrapeCards%28%29%20%7B%0A%20%20%20%20const%20cards%20%3D%20firstMatching%28CANDIDATE_CARD_SELECTORS%29%3B%0A%20%20%20%20const%20coupons%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20card%20of%20cards%29%20%7B%0A%20%20%20%20%20%20const%20brandEl%20%3D%20firstMatching%28CANDIDATE_BRAND_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20descEl%20%3D%20firstMatching%28CANDIDATE_DESC_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20cardText%20%3D%20card.textContent.replace%28/%5Cs%2B/g%2C%20%27%20%27%29.trim%28%29%3B%0A%20%20%20%20%20%20const%20linkEl%20%3D%20card.querySelector%28%27a%27%29%3B%0A%0A%20%20%20%20%20%20const%20brand%20%3D%20brandEl%20%3F%20brandEl.textContent.trim%28%29%20%3A%20%27%27%3B%0A%20%20%20%20%20%20const%20description%20%3D%20descEl%20%3F%20descEl.textContent.trim%28%29%20%3A%20cardText.slice%280%2C%20100%29%3B%0A%20%20%20%20%20%20const%20value%20%3D%20extractValue%28cardText%29%3B%0A%20%20%20%20%20%20if%20%28%21brand%20%7C%7C%20%21description%29%20continue%3B%0A%0A%20%20%20%20%20%20coupons.push%28%7B%0A%20%20%20%20%20%20%20%20id%3A%20%60%24%7Bbrand%7D-%24%7Bdescription%7D%60.replace%28/%5Cs%2B/g%2C%20%27-%27%29.toLowerCase%28%29.slice%280%2C%2060%29%2C%0A%20%20%20%20%20%20%20%20brand%2C%0A%20%20%20%20%20%20%20%20description%2C%0A%20%20%20%20%20%20%20%20value%2C%0A%20%20%20%20%20%20%20%20url%3A%20linkEl%20%3F%20new%20URL%28linkEl.getAttribute%28%27href%27%29%2C%20location.origin%29.href%20%3A%20location.href%2C%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20coupons%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20if%20%28%21location.hostname.endsWith%28%27target.com%27%29%29%20%7B%0A%20%20%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20%20%20overlay.textContent%20%3D%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20a%20target.com%20offers/coupons%20page%2C%20not%20here.%27%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20coupons%20%3D%20scrapeCards%28%29%3B%0A%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%0A%20%20if%20%28coupons.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20overlay.innerHTML%20%3D%0A%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20offers%20found%20on%20this%20page.%20The%20CSS%20selectors%20in%20%27%20%2B%0A%20%20%20%20%20%20%27scrape-target-coupons.src.js%20likely%20need%20updating%20for%20Target%5C%27s%20current%20%27%20%2B%0A%20%20%20%20%20%20%27markup%20%E2%80%94%20inspect%20an%20offer%20card%20and%20edit%20CANDIDATE_CARD_SELECTORS%20/%20%27%20%2B%0A%20%20%20%20%20%20%27CANDIDATE_BRAND_SELECTORS%20/%20CANDIDATE_DESC_SELECTORS.%27%3B%0A%20%20%20%20console.warn%28%27%5BCouponBunch%5D%200%20offers%20found.%20Selectors%20may%20need%20updating.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20source_url%3A%20location.href%2C%0A%20%20%20%20coupons%2C%0A%20%20%7D%3B%0A%0A%20%20const%20blob%20%3D%20new%20Blob%28%5BJSON.stringify%28payload%2C%20null%2C%202%29%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20a.href%20%3D%20url%3B%0A%20%20a.download%20%3D%20%27target-coupons-raw.json%27%3B%0A%20%20document.body.appendChild%28a%29%3B%0A%20%20a.click%28%29%3B%0A%20%20a.remove%28%29%3B%0A%20%20URL.revokeObjectURL%28url%29%3B%0A%0A%20%20overlay.innerHTML%20%3D%20%60%E2%9C%85%20%24%7Bcoupons.length%7D%20offer%28s%29%20saved%20to%20target-coupons-raw.json.%3Cbr%3E%3Cbr%3ENow%20run%3A%20python%20tools/import_target_coupons.py%60%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20overlay.remove%28%29%2C%2015000%29%3B%0A%7D%29%28%29%3B%0A">🏷️ Scrape Target Coupons</a> ← drag this to your bookmarks bar</p>
+  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20Target%20coupons/Circle-offers%20scraping%20bookmarklet%20%E2%80%94%20source%0A%20%2A%20%28readable%29%20version.%0A%20%2A%0A%20%2A%20Run%20this%20on%20Target%27s%20Circle%20offers%20/%20coupons%20page%20%28e.g.%0A%20%2A%20target.com/circle/offers%29%2C%20while%20logged%20in.%0A%20%2A%0A%20%2A%20Selectors%20below%20are%20evidence-based%20rather%20than%20pure%20guesses%3A%20a%20real%0A%20%2A%20target.com%20product-listing%20page%27s%20%22Related%20deals%22%20carousel%20%28captured%0A%20%2A%202026-08%29%20uses%20%60%5Bdata-test%5E%3D%22item-card-%22%5D%60%20deal%20tiles%20with%20a%0A%20%2A%20%60%5Bdata-test%3D%22deal-link%22%5D%60%20anchor%20whose%20%60aria-label%60%20holds%20the%20full%20offer%0A%20%2A%20text%20%28e.g.%20%22Buy%202%20for%20%2410%20Scrubbing%20Bubbles%20toilet%20bowl%20cleaner%22%2C%20%22%245%0A%20%2A%20Target%20GiftCard%20with%203%20oral%20care%20items%22%29%20%E2%80%94%20Target%20reuses%20this%20same%20deal-%0A%20%2A%20tile%20component%20elsewhere%2C%20so%20it%27s%20a%20reasonable%20starting%20point%20for%20the%0A%20%2A%20dedicated%20offers%20page%20too%2C%20though%20not%20confirmed%20against%20that%20exact%20page.%0A%20%2A%20If%20it%20finds%20zero%20coupons%2C%20inspect%20an%20offer%20card%20in%20DevTools%20and%20update%0A%20%2A%20the%20CANDIDATE_%2A%20selectors%20below%2C%20then%20re-run%0A%20%2A%20%60python%20tools/bookmarklet/build.py%60.%0A%20%2A%0A%20%2A%20Usage%3A%20click%20the%20bookmark%2C%20it%20captures%20the%20current%20page%27s%20offers%2C%0A%20%2A%20scrolling%20down%20repeatedly%20to%20trigger%20and%20collect%20any%20lazy-loaded%20offers%0A%20%2A%20further%20down%20the%20page%20%28like%20the%20H-E-B%20coupon%20scraper%20does%29%2C%20then%0A%20%2A%20downloads%20%22target-coupons-raw.json%22%20%28and%20copies%20the%20same%20JSON%20to%20your%0A%20%2A%20clipboard%20as%20a%20fallback%2C%20in%20case%20the%20browser%20silently%20blocks%20the%0A%20%2A%20automatic%20download%20%E2%80%94%20paste%20it%20into%20a%20new%20file%20of%20that%20name%20if%20so%29.%20Then%0A%20%2A%20run%3A%0A%20%2A%20%20%20python%20tools/import_target_coupons.py%0A%20%2A/%0A%28async%20%28%29%20%3D%3E%20%7B%0A%20%20const%20NO_GROWTH_ROUNDS_BEFORE_GIVING_UP%20%3D%204%3B%0A%20%20const%20MAX_ROUNDS%20%3D%2060%3B%0A%20%20const%20WAIT_AFTER_ACTION_MS%20%3D%201500%3B%0A%0A%20%20function%20sleep%28ms%29%20%7B%0A%20%20%20%20return%20new%20Promise%28%28resolve%29%20%3D%3E%20setTimeout%28resolve%2C%20ms%29%29%3B%0A%20%20%7D%0A%0A%20%20//%20If%20a%20browser%20doesn%27t%20resolve%20the%20clipboard-write%20permission%20quickly%0A%20%20//%20%28e.g.%20the%20page%27s%20user-activation%20window%20from%20the%20original%20click%20has%0A%20%20//%20lapsed%20by%20the%20time%20this%20runs%2C%20after%20the%20scroll%20loop%20above%29%2C%20awaiting%0A%20%20//%20navigator.clipboard.writeText%28%29%20directly%20can%20hang%20indefinitely%20with%20no%0A%20%20//%20error%20%E2%80%94%20which%20would%20silently%20block%20the%20success%20message%20and%20JSON%0A%20%20//%20console.log%20below%20from%20ever%20running.%20Racing%20it%20against%20a%20timeout%0A%20%20//%20guarantees%20the%20rest%20of%20the%20script%20always%20completes%20either%20way.%0A%20%20function%20withTimeout%28promise%2C%20ms%29%20%7B%0A%20%20%20%20return%20Promise.race%28%5B%0A%20%20%20%20%20%20promise%2C%0A%20%20%20%20%20%20new%20Promise%28%28_%2C%20reject%29%20%3D%3E%20setTimeout%28%28%29%20%3D%3E%20reject%28new%20Error%28%27timed%20out%27%29%29%2C%20ms%29%29%2C%0A%20%20%20%20%5D%29%3B%0A%20%20%7D%0A%0A%20%20const%20CANDIDATE_CARD_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%5E%3D%22item-card-%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%3D%22offer-card%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%2A%3D%22OfferCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22OfferCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22offer-card%22%5D%27%2C%0A%20%20%20%20%27li%5Bclass%2A%3D%22offer%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20//%20The%20deal%20tile%27s%20own%20link%20carries%20the%20full%20offer%20text%20in%20its%20aria-label%0A%20%20//%20regardless%20of%20how%20the%20visible%20text%20is%20split%20up%20internally%20%E2%80%94%20that%27s%0A%20%20//%20tried%20first%20in%20scrapeCards%28%29%20below.%20These%20are%20the%20visible-text%20fallbacks.%0A%20%20const%20CANDIDATE_DESC_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-test%3D%22basket-offers-message%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%3D%22pbo-title%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-test%2A%3D%22description%22%5D%27%2C%20%27%5Bdata-test%2A%3D%22title%22%5D%27%2C%20%27%5Bclass%2A%3D%22Description%22%5D%27%2C%20%27p%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_SHORT_DESC_SELECTORS%20%3D%20%5B%27%5Bdata-test%3D%22pbo-short-desc%22%5D%27%5D%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-target-coupons-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20setStatus%28overlay%2C%20text%29%20%7B%0A%20%20%20%20overlay.textContent%20%3D%20text%3B%0A%20%20%7D%0A%0A%20%20function%20firstMatching%28selectors%2C%20root%20%3D%20document%29%20%7B%0A%20%20%20%20for%20%28const%20sel%20of%20selectors%29%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20const%20els%20%3D%20root.querySelectorAll%28sel%29%3B%0A%20%20%20%20%20%20%20%20if%20%28els.length%20%3E%200%29%20return%20Array.from%28els%29%3B%0A%20%20%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%20%20//%20invalid%20selector%20for%20this%20browser%20%E2%80%94%20skip%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20%5B%5D%3B%0A%20%20%7D%0A%0A%20%20//%20Real%20offer%20text%20doesn%27t%20always%20say%20%22%24X%20off%22%20%E2%80%94%20%22Buy%202%20for%20%2410%20...%22%20and%0A%20%20//%20%22%245%20Target%20GiftCard%20with%203%20oral%20care%20items%22%20are%20both%20real%20observed%0A%20%20//%20phrasings.%20A%20card%20with%20none%20of%20these%20isn%27t%20a%20real%20coupon/gift-card%0A%20%20//%20offer%20%28e.g.%20a%20plain%20%22%2479.99%20sale%22%20product%20tile%29%2C%20so%20it%27s%20skipped.%0A%20%20function%20extractValue%28text%29%20%7B%0A%20%20%20%20let%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Boff/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20m%5B0%5D%3B%0A%20%20%20%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5Cd%2B%25%5Cs%2Boff/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20m%5B0%5D%3B%0A%20%20%20%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/buy%5Cs%2B%5Cd%2B%5Cs%2Bfor%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20m%5B0%5D%3B%0A%20%20%20%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Btarget%5Cs%2Bgift%5Cs%3Fcard/i%29%3B%0A%20%20%20%20return%20m%20%3F%20m%5B0%5D%20%3A%20%27%27%3B%0A%20%20%7D%0A%0A%20%20//%20No%20dedicated%20brand%20field%20exists%20on%20these%20deal%20tiles%2C%20so%20this%20strips%20the%0A%20%20//%20recognized%20value-phrase%20prefix%20and%20takes%20the%20leading%20run%20of%20capitalized%0A%20%20//%20words%20as%20an%20approximate%20brand%20%28e.g.%20%22Buy%202%20for%20%2410%20Scrubbing%20Bubbles%0A%20%20//%20toilet%20bowl%20cleaner%22%20-%3E%20%22Scrubbing%20Bubbles%22%29.%20Category-wide%20offers%20with%0A%20%20//%20no%20single%20brand%20%28e.g.%20%22...with%203%20oral%20care%20items%22%29%20correctly%20yield%20%27%27%0A%20%20//%20rather%20than%20a%20wrong%20guess.%0A%20%20const%20PREFIX_STRIP_RE%20%3D%20/%5E%28%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Boff%5Cs%2B%7C%5Cd%2B%25%5Cs%2Boff%5Cs%2B%7Cbuy%5Cs%2B%5Cd%2B%5Cs%2Bfor%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2B%7C%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Btarget%5Cs%2Bgift%5Cs%3Fcard%5Cs%2Bwith%5Cs%2B%28%3F%3A%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%7C%5Cd%2B%29%5Cs%2B%5B%5Cw%5Cs%5D%2A%3F%28%3F%3Apurchase%7Citems%3F%29%5Cs%2A%29/i%3B%0A%0A%20%20function%20guessBrand%28description%29%20%7B%0A%20%20%20%20const%20stripped%20%3D%20description.replace%28PREFIX_STRIP_RE%2C%20%27%27%29.trim%28%29%3B%0A%20%20%20%20const%20m%20%3D%20stripped.match%28/%5E%28%5BA-Z%5D%5B%5Cw%27%26%5D%2A%28%3F%3A%5Cs%2B%5BA-Z%5D%5B%5Cw%27%26.%5D%2A%29%7B0%2C2%7D%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20m%5B1%5D%20%3A%20%27%27%3B%0A%20%20%7D%0A%0A%20%20//%20The%20offers%20page%20paginates%20via%20a%20%22Load%20more%22%20button%20%28confirmed%20against%0A%20%20//%20the%20real%20page%29%20rather%20than%20infinite%20scroll%20%E2%80%94%20clicking%20it%20repeatedly%0A%20%20//%20appends%20the%20next%20batch.%20Scrolling%20to%20the%20bottom%20first%20%28below%29%20helps%0A%20%20//%20ensure%20the%20button%20itself%20is%20actually%20in%20view/clickable.%0A%20%20function%20findLoadMoreControl%28%29%20%7B%0A%20%20%20%20const%20candidates%20%3D%20Array.from%28document.querySelectorAll%28%27a%2C%20button%27%29%29.filter%28%28el%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20const%20text%20%3D%20%28el.textContent%20%7C%7C%20%27%27%29.trim%28%29.toLowerCase%28%29%3B%0A%20%20%20%20%20%20return%20/load%20more%7Csee%20more%7Cshow%20more%7Cmore%20offers/i.test%28text%29%3B%0A%20%20%20%20%7D%29%3B%0A%20%20%20%20return%20candidates.find%28%28el%29%20%3D%3E%20el.offsetParent%20%21%3D%3D%20null%20%26%26%20%21el.disabled%29%20%7C%7C%20null%3B%20//%20visible%2C%20enabled%20only%0A%20%20%7D%0A%0A%20%20function%20scrapeCards%28%29%20%7B%0A%20%20%20%20const%20cards%20%3D%20firstMatching%28CANDIDATE_CARD_SELECTORS%29%3B%0A%20%20%20%20const%20coupons%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20card%20of%20cards%29%20%7B%0A%20%20%20%20%20%20const%20linkEl%20%3D%20card.querySelector%28%27%5Bdata-test%3D%22deal-link%22%5D%27%29%20%7C%7C%20card.querySelector%28%27a%27%29%3B%0A%20%20%20%20%20%20const%20ariaText%20%3D%20linkEl%20%3F%20%28linkEl.getAttribute%28%27aria-label%27%29%20%7C%7C%20%27%27%29.trim%28%29%20%3A%20%27%27%3B%0A%0A%20%20%20%20%20%20const%20shortDescEl%20%3D%20firstMatching%28CANDIDATE_SHORT_DESC_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20descEl%20%3D%20firstMatching%28CANDIDATE_DESC_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20domText%20%3D%20%5BshortDescEl%2C%20descEl%5D%0A%20%20%20%20%20%20%20%20.filter%28Boolean%29%0A%20%20%20%20%20%20%20%20.map%28%28el%29%20%3D%3E%20el.textContent.trim%28%29%29%0A%20%20%20%20%20%20%20%20.join%28%27%20%27%29%0A%20%20%20%20%20%20%20%20.trim%28%29%3B%0A%20%20%20%20%20%20const%20cardText%20%3D%20card.textContent.replace%28/%5Cs%2B/g%2C%20%27%20%27%29.trim%28%29%3B%0A%0A%20%20%20%20%20%20const%20description%20%3D%20ariaText%20%7C%7C%20domText%20%7C%7C%20cardText.slice%280%2C%20100%29%3B%0A%20%20%20%20%20%20const%20value%20%3D%20extractValue%28description%29%20%7C%7C%20extractValue%28cardText%29%3B%0A%20%20%20%20%20%20if%20%28%21description%20%7C%7C%20%21value%29%20continue%3B%20//%20skip%20non-coupon%20tiles%20%28e.g.%20plain%20product%20sales%29%0A%0A%20%20%20%20%20%20const%20brand%20%3D%20guessBrand%28description%29%3B%0A%0A%20%20%20%20%20%20coupons.push%28%7B%0A%20%20%20%20%20%20%20%20id%3A%20%60%24%7Bbrand%7D-%24%7Bdescription%7D%60.replace%28/%5Cs%2B/g%2C%20%27-%27%29.toLowerCase%28%29.slice%280%2C%2060%29%2C%0A%20%20%20%20%20%20%20%20brand%2C%0A%20%20%20%20%20%20%20%20description%2C%0A%20%20%20%20%20%20%20%20value%2C%0A%20%20%20%20%20%20%20%20url%3A%20linkEl%20%3F%20new%20URL%28linkEl.getAttribute%28%27href%27%29%2C%20location.origin%29.href%20%3A%20location.href%2C%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20coupons%3B%0A%20%20%7D%0A%0A%20%20//%20Re-scrapes%20after%20each%20round%20to%20pick%20up%20newly-appeared%20offer%20tiles%2C%0A%20%20//%20clicking%20a%20%22Load%20more%22%20button%20if%20one%20is%20present%20%28confirmed%20the%20real%0A%20%20//%20pagination%20mechanism%20on%20the%20offers%20page%29%20or%20scrolling%20to%20the%20bottom%20as%0A%20%20//%20a%20fallback%20if%20not.%20Stops%20once%20several%20rounds%20in%20a%20row%20produce%20no%20new%0A%20%20//%20offers%20%28button%20gone%2C%20or%20genuinely%20no%20more%20content%20either%20way%29.%0A%20%20async%20function%20scrapeAllCards%28overlay%29%20%7B%0A%20%20%20%20const%20byId%20%3D%20new%20Map%28%29%3B%0A%20%20%20%20let%20noGrowthRounds%20%3D%200%3B%0A%0A%20%20%20%20for%20%28let%20round%20%3D%201%3B%20round%20%3C%3D%20MAX_ROUNDS%20%26%26%20noGrowthRounds%20%3C%20NO_GROWTH_ROUNDS_BEFORE_GIVING_UP%3B%20round%2B%2B%29%20%7B%0A%20%20%20%20%20%20const%20before%20%3D%20byId.size%3B%0A%20%20%20%20%20%20for%20%28const%20c%20of%20scrapeCards%28%29%29%20byId.set%28c.id%2C%20c%29%3B%0A%20%20%20%20%20%20setStatus%28overlay%2C%20%60Loading%20more%20offers%E2%80%A6%20%24%7BbyId.size%7D%20found%20so%20far%E2%80%A6%60%29%3B%0A%0A%20%20%20%20%20%20noGrowthRounds%20%3D%20byId.size%20%3E%20before%20%3F%200%20%3A%20noGrowthRounds%20%2B%201%3B%0A%0A%20%20%20%20%20%20const%20loadMoreBtn%20%3D%20findLoadMoreControl%28%29%3B%0A%20%20%20%20%20%20if%20%28loadMoreBtn%29%20%7B%0A%20%20%20%20%20%20%20%20loadMoreBtn.click%28%29%3B%0A%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20window.scrollTo%280%2C%20document.body.scrollHeight%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20await%20sleep%28WAIT_AFTER_ACTION_MS%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20return%20Array.from%28byId.values%28%29%29%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20if%20%28%21location.hostname.endsWith%28%27target.com%27%29%29%20%7B%0A%20%20%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20%20%20overlay.textContent%20%3D%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20a%20target.com%20offers/coupons%20page%2C%20not%20here.%27%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20setStatus%28overlay%2C%20%27Scanning%20for%20offers%E2%80%A6%27%29%3B%0A%20%20const%20coupons%20%3D%20await%20scrapeAllCards%28overlay%29%3B%0A%0A%20%20if%20%28coupons.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20overlay.innerHTML%20%3D%0A%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20offers%20found%20on%20this%20page.%20The%20CSS%20selectors%20in%20%27%20%2B%0A%20%20%20%20%20%20%27scrape-target-coupons.src.js%20likely%20need%20updating%20for%20Target%5C%27s%20current%20%27%20%2B%0A%20%20%20%20%20%20%27markup%20%E2%80%94%20inspect%20an%20offer%20card%20and%20edit%20CANDIDATE_CARD_SELECTORS%20/%20%27%20%2B%0A%20%20%20%20%20%20%27CANDIDATE_DESC_SELECTORS%20/%20CANDIDATE_SHORT_DESC_SELECTORS.%27%3B%0A%20%20%20%20console.warn%28%27%5BCouponBunch%5D%200%20offers%20found.%20Selectors%20may%20need%20updating.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20source_url%3A%20location.href%2C%0A%20%20%20%20coupons%2C%0A%20%20%7D%3B%0A%0A%20%20const%20jsonText%20%3D%20JSON.stringify%28payload%2C%20null%2C%202%29%3B%0A%20%20//%20Exposed%20as%20a%20global%20so%20it%20can%20be%20reliably%20grabbed%20later%20with%20DevTools%27%0A%20%20//%20own%20%60copy%28__couponBunchTargetCoupons%29%60%20console%20command%20if%20the%20download%0A%20%20//%20and%20clipboard-API%20attempts%20below%20both%20fail%20%E2%80%94%20that%20command%20copies%20the%0A%20%20//%20full%20value%20regardless%20of%20length%2C%20unlike%20manually%20selecting%20console%0A%20%20//%20output%20text%20%28which%20can%20miss%20the%20start/end%20of%20a%20long%20printed%20string%29.%0A%20%20window.__couponBunchTargetCoupons%20%3D%20jsonText%3B%0A%20%20const%20blob%20%3D%20new%20Blob%28%5BjsonText%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20a.href%20%3D%20url%3B%0A%20%20a.download%20%3D%20%27target-coupons-raw.json%27%3B%0A%20%20document.body.appendChild%28a%29%3B%0A%20%20a.click%28%29%3B%0A%20%20a.remove%28%29%3B%0A%20%20URL.revokeObjectURL%28url%29%3B%0A%0A%20%20//%20Some%20browsers%20silently%20block%20a%20bookmarklet-triggered%20download%20with%20no%0A%20%20//%20visible%20warning.%20Copying%20to%20the%20clipboard%20too%20means%20there%27s%20always%20a%0A%20%20//%20way%20to%20get%20the%20data%20out%2C%20even%20if%20the%20file%20never%20appears%20anywhere.%0A%20%20let%20clipboardNote%20%3D%20%27%27%3B%0A%20%20try%20%7B%0A%20%20%20%20await%20withTimeout%28navigator.clipboard.writeText%28jsonText%29%2C%202000%29%3B%0A%20%20%20%20clipboardNote%20%3D%20%27%20Also%20copied%20to%20your%20clipboard%20%E2%80%94%20if%20no%20file%20downloaded%2C%20paste%20it%20into%20a%20new%20file%20named%20target-coupons-raw.json.%27%3B%0A%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20//%20clipboard%20permission%20denied%2C%20unsupported%2C%20or%20timed%20out%20%E2%80%94%20the%20download%0A%20%20%20%20//%20attempt%20above%20and%20the%20console.log%20below%20are%20still%20available%0A%20%20%7D%0A%0A%20%20overlay.innerHTML%20%3D%20%60%E2%9C%85%20%24%7Bcoupons.length%7D%20offer%28s%29%20saved%20to%20target-coupons-raw.json.%24%7BclipboardNote%7D%3Cbr%3E%3Cbr%3ENow%20run%3A%20python%20tools/import_target_coupons.py%60%3B%0A%20%20//%20Third%20fallback%2C%20in%20case%20both%20the%20download%20and%20the%20clipboard%20copy%20are%0A%20%20//%20blocked%3A%20the%20full%20JSON%20is%20always%20available%20by%20scrolling%20up%20in%20the%0A%20%20//%20Console%20after%20the%20overlay%20above%20confirms%20how%20many%20offers%20were%20found.%0A%20%20console.log%28jsonText%29%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20overlay.remove%28%29%2C%2015000%29%3B%0A%7D%29%28%29%3B%0A">🏷️ Scrape Target Coupons</a> ← drag this to your bookmarks bar</p>
   <ol class="steps">
     <li>Go to the page above, logged in.</li>
     <li>Click the bookmark. Watch the on-page progress box.</li>
@@ -655,30 +677,69 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
  * (readable) version.
  *
  * Run this on Target&#x27;s Circle offers / coupons page (e.g.
- * target.com/circle/offers), while logged in. Selectors are a best guess —
- * this sandbox has no network access to target.com to verify real markup
- * against. If it finds zero coupons, inspect an offer card in DevTools and
- * update the CANDIDATE_* selectors below, then re-run
+ * target.com/circle/offers), while logged in.
+ *
+ * Selectors below are evidence-based rather than pure guesses: a real
+ * target.com product-listing page&#x27;s &quot;Related deals&quot; carousel (captured
+ * 2026-08) uses `[data-test^=&quot;item-card-&quot;]` deal tiles with a
+ * `[data-test=&quot;deal-link&quot;]` anchor whose `aria-label` holds the full offer
+ * text (e.g. &quot;Buy 2 for $10 Scrubbing Bubbles toilet bowl cleaner&quot;, &quot;$5
+ * Target GiftCard with 3 oral care items&quot;) — Target reuses this same deal-
+ * tile component elsewhere, so it&#x27;s a reasonable starting point for the
+ * dedicated offers page too, though not confirmed against that exact page.
+ * If it finds zero coupons, inspect an offer card in DevTools and update
+ * the CANDIDATE_* selectors below, then re-run
  * `python tools/bookmarklet/build.py`.
  *
- * Usage: click the bookmark, it captures the current page&#x27;s offers and
- * downloads &quot;target-coupons-raw.json&quot;. Then run:
+ * Usage: click the bookmark, it captures the current page&#x27;s offers,
+ * scrolling down repeatedly to trigger and collect any lazy-loaded offers
+ * further down the page (like the H-E-B coupon scraper does), then
+ * downloads &quot;target-coupons-raw.json&quot; (and copies the same JSON to your
+ * clipboard as a fallback, in case the browser silently blocks the
+ * automatic download — paste it into a new file of that name if so). Then
+ * run:
  *   python tools/import_target_coupons.py
  */
-(() =&gt; {
+(async () =&gt; {
+  const NO_GROWTH_ROUNDS_BEFORE_GIVING_UP = 4;
+  const MAX_ROUNDS = 60;
+  const WAIT_AFTER_ACTION_MS = 1500;
+
+  function sleep(ms) {
+    return new Promise((resolve) =&gt; setTimeout(resolve, ms));
+  }
+
+  // If a browser doesn&#x27;t resolve the clipboard-write permission quickly
+  // (e.g. the page&#x27;s user-activation window from the original click has
+  // lapsed by the time this runs, after the scroll loop above), awaiting
+  // navigator.clipboard.writeText() directly can hang indefinitely with no
+  // error — which would silently block the success message and JSON
+  // console.log below from ever running. Racing it against a timeout
+  // guarantees the rest of the script always completes either way.
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =&gt; setTimeout(() =&gt; reject(new Error(&#x27;timed out&#x27;)), ms)),
+    ]);
+  }
+
   const CANDIDATE_CARD_SELECTORS = [
+    &#x27;[data-test^=&quot;item-card-&quot;]&#x27;,
     &#x27;[data-test=&quot;offer-card&quot;]&#x27;,
     &#x27;[data-test*=&quot;OfferCard&quot;]&#x27;,
     &#x27;[class*=&quot;OfferCard&quot;]&#x27;,
     &#x27;[class*=&quot;offer-card&quot;]&#x27;,
     &#x27;li[class*=&quot;offer&quot;]&#x27;,
   ];
-  const CANDIDATE_BRAND_SELECTORS = [
-    &#x27;[data-test*=&quot;brand&quot;]&#x27;, &#x27;[class*=&quot;Brand&quot;]&#x27;, &#x27;[class*=&quot;brand&quot;]&#x27;, &#x27;h3&#x27;, &#x27;h4&#x27;,
-  ];
+  // The deal tile&#x27;s own link carries the full offer text in its aria-label
+  // regardless of how the visible text is split up internally — that&#x27;s
+  // tried first in scrapeCards() below. These are the visible-text fallbacks.
   const CANDIDATE_DESC_SELECTORS = [
+    &#x27;[data-test=&quot;basket-offers-message&quot;]&#x27;,
+    &#x27;[data-test=&quot;pbo-title&quot;]&#x27;,
     &#x27;[data-test*=&quot;description&quot;]&#x27;, &#x27;[data-test*=&quot;title&quot;]&#x27;, &#x27;[class*=&quot;Description&quot;]&#x27;, &#x27;p&#x27;,
   ];
+  const CANDIDATE_SHORT_DESC_SELECTORS = [&#x27;[data-test=&quot;pbo-short-desc&quot;]&#x27;];
 
   function makeOverlay() {
     const el = document.createElement(&#x27;div&#x27;);
@@ -693,6 +754,10 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
     return el;
   }
 
+  function setStatus(overlay, text) {
+    overlay.textContent = text;
+  }
+
   function firstMatching(selectors, root = document) {
     for (const sel of selectors) {
       try {
@@ -705,11 +770,45 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
     return [];
   }
 
+  // Real offer text doesn&#x27;t always say &quot;$X off&quot; — &quot;Buy 2 for $10 ...&quot; and
+  // &quot;$5 Target GiftCard with 3 oral care items&quot; are both real observed
+  // phrasings. A card with none of these isn&#x27;t a real coupon/gift-card
+  // offer (e.g. a plain &quot;$79.99 sale&quot; product tile), so it&#x27;s skipped.
   function extractValue(text) {
     let m = (text || &#x27;&#x27;).match(/\$\d+(?:\.\d{2})?\s+off/i);
     if (m) return m[0];
     m = (text || &#x27;&#x27;).match(/\d+%\s+off/i);
+    if (m) return m[0];
+    m = (text || &#x27;&#x27;).match(/buy\s+\d+\s+for\s+\$\d+(?:\.\d{2})?/i);
+    if (m) return m[0];
+    m = (text || &#x27;&#x27;).match(/\$\d+(?:\.\d{2})?\s+target\s+gift\s?card/i);
     return m ? m[0] : &#x27;&#x27;;
+  }
+
+  // No dedicated brand field exists on these deal tiles, so this strips the
+  // recognized value-phrase prefix and takes the leading run of capitalized
+  // words as an approximate brand (e.g. &quot;Buy 2 for $10 Scrubbing Bubbles
+  // toilet bowl cleaner&quot; -&gt; &quot;Scrubbing Bubbles&quot;). Category-wide offers with
+  // no single brand (e.g. &quot;...with 3 oral care items&quot;) correctly yield &#x27;&#x27;
+  // rather than a wrong guess.
+  const PREFIX_STRIP_RE = /^(\$\d+(?:\.\d{2})?\s+off\s+|\d+%\s+off\s+|buy\s+\d+\s+for\s+\$\d+(?:\.\d{2})?\s+|\$\d+(?:\.\d{2})?\s+target\s+gift\s?card\s+with\s+(?:\$\d+(?:\.\d{2})?|\d+)\s+[\w\s]*?(?:purchase|items?)\s*)/i;
+
+  function guessBrand(description) {
+    const stripped = description.replace(PREFIX_STRIP_RE, &#x27;&#x27;).trim();
+    const m = stripped.match(/^([A-Z][\w&#x27;&amp;]*(?:\s+[A-Z][\w&#x27;&amp;.]*){0,2})/);
+    return m ? m[1] : &#x27;&#x27;;
+  }
+
+  // The offers page paginates via a &quot;Load more&quot; button (confirmed against
+  // the real page) rather than infinite scroll — clicking it repeatedly
+  // appends the next batch. Scrolling to the bottom first (below) helps
+  // ensure the button itself is actually in view/clickable.
+  function findLoadMoreControl() {
+    const candidates = Array.from(document.querySelectorAll(&#x27;a, button&#x27;)).filter((el) =&gt; {
+      const text = (el.textContent || &#x27;&#x27;).trim().toLowerCase();
+      return /load more|see more|show more|more offers/i.test(text);
+    });
+    return candidates.find((el) =&gt; el.offsetParent !== null &amp;&amp; !el.disabled) || null; // visible, enabled only
   }
 
   function scrapeCards() {
@@ -717,15 +816,23 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
     const coupons = [];
 
     for (const card of cards) {
-      const brandEl = firstMatching(CANDIDATE_BRAND_SELECTORS, card)[0];
-      const descEl = firstMatching(CANDIDATE_DESC_SELECTORS, card)[0];
-      const cardText = card.textContent.replace(/\s+/g, &#x27; &#x27;).trim();
-      const linkEl = card.querySelector(&#x27;a&#x27;);
+      const linkEl = card.querySelector(&#x27;[data-test=&quot;deal-link&quot;]&#x27;) || card.querySelector(&#x27;a&#x27;);
+      const ariaText = linkEl ? (linkEl.getAttribute(&#x27;aria-label&#x27;) || &#x27;&#x27;).trim() : &#x27;&#x27;;
 
-      const brand = brandEl ? brandEl.textContent.trim() : &#x27;&#x27;;
-      const description = descEl ? descEl.textContent.trim() : cardText.slice(0, 100);
-      const value = extractValue(cardText);
-      if (!brand || !description) continue;
+      const shortDescEl = firstMatching(CANDIDATE_SHORT_DESC_SELECTORS, card)[0];
+      const descEl = firstMatching(CANDIDATE_DESC_SELECTORS, card)[0];
+      const domText = [shortDescEl, descEl]
+        .filter(Boolean)
+        .map((el) =&gt; el.textContent.trim())
+        .join(&#x27; &#x27;)
+        .trim();
+      const cardText = card.textContent.replace(/\s+/g, &#x27; &#x27;).trim();
+
+      const description = ariaText || domText || cardText.slice(0, 100);
+      const value = extractValue(description) || extractValue(cardText);
+      if (!description || !value) continue; // skip non-coupon tiles (e.g. plain product sales)
+
+      const brand = guessBrand(description);
 
       coupons.push({
         id: `${brand}-${description}`.replace(/\s+/g, &#x27;-&#x27;).toLowerCase().slice(0, 60),
@@ -738,6 +845,34 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
     return coupons;
   }
 
+  // Re-scrapes after each round to pick up newly-appeared offer tiles,
+  // clicking a &quot;Load more&quot; button if one is present (confirmed the real
+  // pagination mechanism on the offers page) or scrolling to the bottom as
+  // a fallback if not. Stops once several rounds in a row produce no new
+  // offers (button gone, or genuinely no more content either way).
+  async function scrapeAllCards(overlay) {
+    const byId = new Map();
+    let noGrowthRounds = 0;
+
+    for (let round = 1; round &lt;= MAX_ROUNDS &amp;&amp; noGrowthRounds &lt; NO_GROWTH_ROUNDS_BEFORE_GIVING_UP; round++) {
+      const before = byId.size;
+      for (const c of scrapeCards()) byId.set(c.id, c);
+      setStatus(overlay, `Loading more offers… ${byId.size} found so far…`);
+
+      noGrowthRounds = byId.size &gt; before ? 0 : noGrowthRounds + 1;
+
+      const loadMoreBtn = findLoadMoreControl();
+      if (loadMoreBtn) {
+        loadMoreBtn.click();
+      } else {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+      await sleep(WAIT_AFTER_ACTION_MS);
+    }
+
+    return Array.from(byId.values());
+  }
+
   // --- main ---
   if (!location.hostname.endsWith(&#x27;target.com&#x27;)) {
     const overlay = makeOverlay();
@@ -745,15 +880,16 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
     return;
   }
 
-  const coupons = scrapeCards();
   const overlay = makeOverlay();
+  setStatus(overlay, &#x27;Scanning for offers…&#x27;);
+  const coupons = await scrapeAllCards(overlay);
 
   if (coupons.length === 0) {
     overlay.innerHTML =
       &#x27;⚠️ No offers found on this page. The CSS selectors in &#x27; +
       &#x27;scrape-target-coupons.src.js likely need updating for Target\&#x27;s current &#x27; +
       &#x27;markup — inspect an offer card and edit CANDIDATE_CARD_SELECTORS / &#x27; +
-      &#x27;CANDIDATE_BRAND_SELECTORS / CANDIDATE_DESC_SELECTORS.&#x27;;
+      &#x27;CANDIDATE_DESC_SELECTORS / CANDIDATE_SHORT_DESC_SELECTORS.&#x27;;
     console.warn(&#x27;[CouponBunch] 0 offers found. Selectors may need updating.&#x27;);
     return;
   }
@@ -765,7 +901,14 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
     coupons,
   };
 
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: &#x27;application/json&#x27; });
+  const jsonText = JSON.stringify(payload, null, 2);
+  // Exposed as a global so it can be reliably grabbed later with DevTools&#x27;
+  // own `copy(__couponBunchTargetCoupons)` console command if the download
+  // and clipboard-API attempts below both fail — that command copies the
+  // full value regardless of length, unlike manually selecting console
+  // output text (which can miss the start/end of a long printed string).
+  window.__couponBunchTargetCoupons = jsonText;
+  const blob = new Blob([jsonText], { type: &#x27;application/json&#x27; });
   const url = URL.createObjectURL(blob);
   const a = document.createElement(&#x27;a&#x27;);
   a.href = url;
@@ -775,7 +918,23 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
   a.remove();
   URL.revokeObjectURL(url);
 
-  overlay.innerHTML = `✅ ${coupons.length} offer(s) saved to target-coupons-raw.json.&lt;br&gt;&lt;br&gt;Now run: python tools/import_target_coupons.py`;
+  // Some browsers silently block a bookmarklet-triggered download with no
+  // visible warning. Copying to the clipboard too means there&#x27;s always a
+  // way to get the data out, even if the file never appears anywhere.
+  let clipboardNote = &#x27;&#x27;;
+  try {
+    await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
+    clipboardNote = &#x27; Also copied to your clipboard — if no file downloaded, paste it into a new file named target-coupons-raw.json.&#x27;;
+  } catch (e) {
+    // clipboard permission denied, unsupported, or timed out — the download
+    // attempt above and the console.log below are still available
+  }
+
+  overlay.innerHTML = `✅ ${coupons.length} offer(s) saved to target-coupons-raw.json.${clipboardNote}&lt;br&gt;&lt;br&gt;Now run: python tools/import_target_coupons.py`;
+  // Third fallback, in case both the download and the clipboard copy are
+  // blocked: the full JSON is always available by scrolling up in the
+  // Console after the overlay above confirms how many offers were found.
+  console.log(jsonText);
   setTimeout(() =&gt; overlay.remove(), 15000);
 })();
 </code></pre>

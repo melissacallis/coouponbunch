@@ -3,30 +3,69 @@
  * (readable) version.
  *
  * Run this on Target's Circle offers / coupons page (e.g.
- * target.com/circle/offers), while logged in. Selectors are a best guess —
- * this sandbox has no network access to target.com to verify real markup
- * against. If it finds zero coupons, inspect an offer card in DevTools and
- * update the CANDIDATE_* selectors below, then re-run
+ * target.com/circle/offers), while logged in.
+ *
+ * Selectors below are evidence-based rather than pure guesses: a real
+ * target.com product-listing page's "Related deals" carousel (captured
+ * 2026-08) uses `[data-test^="item-card-"]` deal tiles with a
+ * `[data-test="deal-link"]` anchor whose `aria-label` holds the full offer
+ * text (e.g. "Buy 2 for $10 Scrubbing Bubbles toilet bowl cleaner", "$5
+ * Target GiftCard with 3 oral care items") — Target reuses this same deal-
+ * tile component elsewhere, so it's a reasonable starting point for the
+ * dedicated offers page too, though not confirmed against that exact page.
+ * If it finds zero coupons, inspect an offer card in DevTools and update
+ * the CANDIDATE_* selectors below, then re-run
  * `python tools/bookmarklet/build.py`.
  *
- * Usage: click the bookmark, it captures the current page's offers and
- * downloads "target-coupons-raw.json". Then run:
+ * Usage: click the bookmark, it captures the current page's offers,
+ * scrolling down repeatedly to trigger and collect any lazy-loaded offers
+ * further down the page (like the H-E-B coupon scraper does), then
+ * downloads "target-coupons-raw.json" (and copies the same JSON to your
+ * clipboard as a fallback, in case the browser silently blocks the
+ * automatic download — paste it into a new file of that name if so). Then
+ * run:
  *   python tools/import_target_coupons.py
  */
-(() => {
+(async () => {
+  const NO_GROWTH_ROUNDS_BEFORE_GIVING_UP = 4;
+  const MAX_ROUNDS = 60;
+  const WAIT_AFTER_ACTION_MS = 1500;
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // If a browser doesn't resolve the clipboard-write permission quickly
+  // (e.g. the page's user-activation window from the original click has
+  // lapsed by the time this runs, after the scroll loop above), awaiting
+  // navigator.clipboard.writeText() directly can hang indefinitely with no
+  // error — which would silently block the success message and JSON
+  // console.log below from ever running. Racing it against a timeout
+  // guarantees the rest of the script always completes either way.
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), ms)),
+    ]);
+  }
+
   const CANDIDATE_CARD_SELECTORS = [
+    '[data-test^="item-card-"]',
     '[data-test="offer-card"]',
     '[data-test*="OfferCard"]',
     '[class*="OfferCard"]',
     '[class*="offer-card"]',
     'li[class*="offer"]',
   ];
-  const CANDIDATE_BRAND_SELECTORS = [
-    '[data-test*="brand"]', '[class*="Brand"]', '[class*="brand"]', 'h3', 'h4',
-  ];
+  // The deal tile's own link carries the full offer text in its aria-label
+  // regardless of how the visible text is split up internally — that's
+  // tried first in scrapeCards() below. These are the visible-text fallbacks.
   const CANDIDATE_DESC_SELECTORS = [
+    '[data-test="basket-offers-message"]',
+    '[data-test="pbo-title"]',
     '[data-test*="description"]', '[data-test*="title"]', '[class*="Description"]', 'p',
   ];
+  const CANDIDATE_SHORT_DESC_SELECTORS = ['[data-test="pbo-short-desc"]'];
 
   function makeOverlay() {
     const el = document.createElement('div');
@@ -41,6 +80,10 @@
     return el;
   }
 
+  function setStatus(overlay, text) {
+    overlay.textContent = text;
+  }
+
   function firstMatching(selectors, root = document) {
     for (const sel of selectors) {
       try {
@@ -53,11 +96,45 @@
     return [];
   }
 
+  // Real offer text doesn't always say "$X off" — "Buy 2 for $10 ..." and
+  // "$5 Target GiftCard with 3 oral care items" are both real observed
+  // phrasings. A card with none of these isn't a real coupon/gift-card
+  // offer (e.g. a plain "$79.99 sale" product tile), so it's skipped.
   function extractValue(text) {
     let m = (text || '').match(/\$\d+(?:\.\d{2})?\s+off/i);
     if (m) return m[0];
     m = (text || '').match(/\d+%\s+off/i);
+    if (m) return m[0];
+    m = (text || '').match(/buy\s+\d+\s+for\s+\$\d+(?:\.\d{2})?/i);
+    if (m) return m[0];
+    m = (text || '').match(/\$\d+(?:\.\d{2})?\s+target\s+gift\s?card/i);
     return m ? m[0] : '';
+  }
+
+  // No dedicated brand field exists on these deal tiles, so this strips the
+  // recognized value-phrase prefix and takes the leading run of capitalized
+  // words as an approximate brand (e.g. "Buy 2 for $10 Scrubbing Bubbles
+  // toilet bowl cleaner" -> "Scrubbing Bubbles"). Category-wide offers with
+  // no single brand (e.g. "...with 3 oral care items") correctly yield ''
+  // rather than a wrong guess.
+  const PREFIX_STRIP_RE = /^(\$\d+(?:\.\d{2})?\s+off\s+|\d+%\s+off\s+|buy\s+\d+\s+for\s+\$\d+(?:\.\d{2})?\s+|\$\d+(?:\.\d{2})?\s+target\s+gift\s?card\s+with\s+(?:\$\d+(?:\.\d{2})?|\d+)\s+[\w\s]*?(?:purchase|items?)\s*)/i;
+
+  function guessBrand(description) {
+    const stripped = description.replace(PREFIX_STRIP_RE, '').trim();
+    const m = stripped.match(/^([A-Z][\w'&]*(?:\s+[A-Z][\w'&.]*){0,2})/);
+    return m ? m[1] : '';
+  }
+
+  // The offers page paginates via a "Load more" button (confirmed against
+  // the real page) rather than infinite scroll — clicking it repeatedly
+  // appends the next batch. Scrolling to the bottom first (below) helps
+  // ensure the button itself is actually in view/clickable.
+  function findLoadMoreControl() {
+    const candidates = Array.from(document.querySelectorAll('a, button')).filter((el) => {
+      const text = (el.textContent || '').trim().toLowerCase();
+      return /load more|see more|show more|more offers/i.test(text);
+    });
+    return candidates.find((el) => el.offsetParent !== null && !el.disabled) || null; // visible, enabled only
   }
 
   function scrapeCards() {
@@ -65,15 +142,23 @@
     const coupons = [];
 
     for (const card of cards) {
-      const brandEl = firstMatching(CANDIDATE_BRAND_SELECTORS, card)[0];
-      const descEl = firstMatching(CANDIDATE_DESC_SELECTORS, card)[0];
-      const cardText = card.textContent.replace(/\s+/g, ' ').trim();
-      const linkEl = card.querySelector('a');
+      const linkEl = card.querySelector('[data-test="deal-link"]') || card.querySelector('a');
+      const ariaText = linkEl ? (linkEl.getAttribute('aria-label') || '').trim() : '';
 
-      const brand = brandEl ? brandEl.textContent.trim() : '';
-      const description = descEl ? descEl.textContent.trim() : cardText.slice(0, 100);
-      const value = extractValue(cardText);
-      if (!brand || !description) continue;
+      const shortDescEl = firstMatching(CANDIDATE_SHORT_DESC_SELECTORS, card)[0];
+      const descEl = firstMatching(CANDIDATE_DESC_SELECTORS, card)[0];
+      const domText = [shortDescEl, descEl]
+        .filter(Boolean)
+        .map((el) => el.textContent.trim())
+        .join(' ')
+        .trim();
+      const cardText = card.textContent.replace(/\s+/g, ' ').trim();
+
+      const description = ariaText || domText || cardText.slice(0, 100);
+      const value = extractValue(description) || extractValue(cardText);
+      if (!description || !value) continue; // skip non-coupon tiles (e.g. plain product sales)
+
+      const brand = guessBrand(description);
 
       coupons.push({
         id: `${brand}-${description}`.replace(/\s+/g, '-').toLowerCase().slice(0, 60),
@@ -86,6 +171,34 @@
     return coupons;
   }
 
+  // Re-scrapes after each round to pick up newly-appeared offer tiles,
+  // clicking a "Load more" button if one is present (confirmed the real
+  // pagination mechanism on the offers page) or scrolling to the bottom as
+  // a fallback if not. Stops once several rounds in a row produce no new
+  // offers (button gone, or genuinely no more content either way).
+  async function scrapeAllCards(overlay) {
+    const byId = new Map();
+    let noGrowthRounds = 0;
+
+    for (let round = 1; round <= MAX_ROUNDS && noGrowthRounds < NO_GROWTH_ROUNDS_BEFORE_GIVING_UP; round++) {
+      const before = byId.size;
+      for (const c of scrapeCards()) byId.set(c.id, c);
+      setStatus(overlay, `Loading more offers… ${byId.size} found so far…`);
+
+      noGrowthRounds = byId.size > before ? 0 : noGrowthRounds + 1;
+
+      const loadMoreBtn = findLoadMoreControl();
+      if (loadMoreBtn) {
+        loadMoreBtn.click();
+      } else {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+      await sleep(WAIT_AFTER_ACTION_MS);
+    }
+
+    return Array.from(byId.values());
+  }
+
   // --- main ---
   if (!location.hostname.endsWith('target.com')) {
     const overlay = makeOverlay();
@@ -93,15 +206,16 @@
     return;
   }
 
-  const coupons = scrapeCards();
   const overlay = makeOverlay();
+  setStatus(overlay, 'Scanning for offers…');
+  const coupons = await scrapeAllCards(overlay);
 
   if (coupons.length === 0) {
     overlay.innerHTML =
       '⚠️ No offers found on this page. The CSS selectors in ' +
       'scrape-target-coupons.src.js likely need updating for Target\'s current ' +
       'markup — inspect an offer card and edit CANDIDATE_CARD_SELECTORS / ' +
-      'CANDIDATE_BRAND_SELECTORS / CANDIDATE_DESC_SELECTORS.';
+      'CANDIDATE_DESC_SELECTORS / CANDIDATE_SHORT_DESC_SELECTORS.';
     console.warn('[CouponBunch] 0 offers found. Selectors may need updating.');
     return;
   }
@@ -113,7 +227,14 @@
     coupons,
   };
 
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const jsonText = JSON.stringify(payload, null, 2);
+  // Exposed as a global so it can be reliably grabbed later with DevTools'
+  // own `copy(__couponBunchTargetCoupons)` console command if the download
+  // and clipboard-API attempts below both fail — that command copies the
+  // full value regardless of length, unlike manually selecting console
+  // output text (which can miss the start/end of a long printed string).
+  window.__couponBunchTargetCoupons = jsonText;
+  const blob = new Blob([jsonText], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -123,6 +244,22 @@
   a.remove();
   URL.revokeObjectURL(url);
 
-  overlay.innerHTML = `✅ ${coupons.length} offer(s) saved to target-coupons-raw.json.<br><br>Now run: python tools/import_target_coupons.py`;
+  // Some browsers silently block a bookmarklet-triggered download with no
+  // visible warning. Copying to the clipboard too means there's always a
+  // way to get the data out, even if the file never appears anywhere.
+  let clipboardNote = '';
+  try {
+    await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
+    clipboardNote = ' Also copied to your clipboard — if no file downloaded, paste it into a new file named target-coupons-raw.json.';
+  } catch (e) {
+    // clipboard permission denied, unsupported, or timed out — the download
+    // attempt above and the console.log below are still available
+  }
+
+  overlay.innerHTML = `✅ ${coupons.length} offer(s) saved to target-coupons-raw.json.${clipboardNote}<br><br>Now run: python tools/import_target_coupons.py`;
+  // Third fallback, in case both the download and the clipboard copy are
+  // blocked: the full JSON is always available by scrolling up in the
+  // Console after the overlay above confirms how many offers were found.
+  console.log(jsonText);
   setTimeout(() => overlay.remove(), 15000);
 })();

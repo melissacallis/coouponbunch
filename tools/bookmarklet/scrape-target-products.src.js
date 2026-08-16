@@ -3,21 +3,27 @@
  *
  * Run this on a Target product-listing page (e.g. a category filtered to
  * gift-card promo items, like target.com/pl/.../?facetedValue=...), while
- * logged in. Selectors are a best guess — this sandbox has no network access
- * to target.com to verify real markup against. If it finds zero products,
- * inspect a product card in DevTools and update the CANDIDATE_* selectors
- * below, then re-run `python tools/bookmarklet/build.py`.
+ * logged in. Selectors are verified against real target.com markup captured
+ * 2026-08 (with best-guess fallbacks kept in case Target changes it again —
+ * if it finds zero products, inspect a product card in DevTools and update
+ * the CANDIDATE_* selectors below, then re-run `python tools/bookmarklet/build.py`).
  *
- * It only keeps products that actually show a "Buy X / Spend $Y, Get a
- * Target GiftCard" badge — that's the whole point of this page, so products
- * without one are silently skipped rather than cluttering the export.
+ * It only keeps products that actually show a Target GiftCard promo badge —
+ * that's the whole point of this page, so products without one are silently
+ * skipped rather than cluttering the export. Products showing "See price in
+ * cart" instead of a real price are also skipped, since a stack's dollar
+ * value can't be computed without one.
  *
  * Usage: click the bookmark, it captures the current page's gift-card
  * products and downloads "target-products-raw.json". Then run:
  *   python tools/import_target_products.py
  */
 (() => {
+  // Verified against real target.com product-listing markup (2026-08) — the
+  // first entry in each list is the confirmed selector; the rest are kept as
+  // fallbacks in case Target changes their markup again.
   const CANDIDATE_CARD_SELECTORS = [
+    '[data-test="@web/site-top-of-funnel/ProductCardWrapper"]',
     '[data-test="product-card"]',
     '[data-test*="ProductCard"]',
     '[class*="ProductCardWrapper"]',
@@ -25,14 +31,26 @@
     'li[class*="product"]',
   ];
   const CANDIDATE_NAME_SELECTORS = [
+    '[data-test="@web/ProductCard/title"]',
     '[data-test="product-title"]', '[data-test*="title"]', 'a[href*="/p/"]',
   ];
   const CANDIDATE_PRICE_SELECTORS = [
+    '[data-test="current-price"]',
     '[data-test="product-price"]', '[data-test*="price"]', '[class*="Price"]',
   ];
+  // The promo text itself (e.g. "$15 Target GiftCard with $50 household
+  // items purchase") is what actually gets checked for "target gift card" —
+  // this selector just needs to find *that* text, regardless of what the
+  // wrapping element's class/data-test happens to be named.
   const CANDIDATE_PROMO_SELECTORS = [
+    '[data-test="first-regular-promo"]',
     '[data-test*="giftcard"]', '[data-test*="GiftCard"]',
     '[class*="GiftCard"]', '[class*="giftcard"]', '[class*="Promotion"]',
+  ];
+  // Target's product cards have a dedicated brand link — far more reliable
+  // than guessing the brand from the first word of the product name.
+  const CANDIDATE_BRAND_SELECTORS = [
+    '[data-test="@web/ProductCard/ProductCardBrandAndRibbonMessage/brand"]',
   ];
   const CANDIDATE_IMAGE_SELECTORS = ['img'];
 
@@ -74,9 +92,10 @@
   }
 
   function guessBrand(name) {
-    // First word/phrase of the product name is usually the brand on Target's
+    // Fallback only, used when CANDIDATE_BRAND_SELECTORS doesn't match:
+    // first word/phrase of the product name is usually the brand on Target's
     // listings (e.g. "Tide Liquid Laundry Detergent..." -> "Tide"). Not
-    // perfect, but a reasonable default — edit per-product in the JSON if wrong.
+    // perfect — edit per-product in the JSON if wrong.
     if (!name) return '';
     return name.split(/\s+/).slice(0, 1).join(' ');
   }
@@ -92,17 +111,20 @@
 
       const nameEl = firstMatching(CANDIDATE_NAME_SELECTORS, card)[0];
       const priceEl = firstMatching(CANDIDATE_PRICE_SELECTORS, card)[0];
+      const brandEl = firstMatching(CANDIDATE_BRAND_SELECTORS, card)[0];
       const imgEl = firstMatching(CANDIDATE_IMAGE_SELECTORS, card)[0];
       const linkEl = card.querySelector('a[href*="/p/"]');
 
       const name = nameEl ? nameEl.textContent.trim() : '';
-      const price = priceEl ? extractPrice(priceEl.textContent) : null;
+      const priceText = priceEl ? priceEl.textContent.trim() : '';
+      if (/see price in cart/i.test(priceText)) continue; // no price to compute a stack value with
+      const price = extractPrice(priceText);
       if (!name || price == null) continue;
 
       products.push({
         id: extractId(card) || `${name}-${price}`,
         name,
-        brand: guessBrand(name),
+        brand: brandEl ? brandEl.textContent.trim() : guessBrand(name),
         price,
         image: imgEl ? imgEl.src : null,
         gift_card_promo: promoText,
