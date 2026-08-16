@@ -14,13 +14,12 @@
  * cart" instead of a real price are also skipped, since a stack's dollar
  * value can't be computed without one.
  *
- * Usage: click the bookmark, it captures the current page's gift-card
- * products and downloads "target-products-raw.json" (also copies the JSON
- * to your clipboard and exposes it as window.__couponBunchTargetProducts as
- * fallbacks, in case the browser silently blocks the download — run
- * `copy(__couponBunchTargetProducts)` in the Console to grab it reliably
- * either way). Then run:
- *   python tools/import_target_products.py
+ * Usage: click the bookmark — it captures the current page's gift-card
+ * products and opens a new tab with the JSON already selected in a text box
+ * (no DevTools needed, works even when the browser silently blocks a
+ * bookmarklet-triggered file download). Press Ctrl+C there, then run:
+ *   python tools/import_target_products.py --file wherever-you-saved-it.json
+ * or paste it straight to Claude in chat.
  */
 (async () => {
   function withTimeout(promise, ms) {
@@ -28,6 +27,30 @@
       promise,
       new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), ms)),
     ]);
+  }
+
+  // File downloads triggered from a bookmarklet get silently blocked in some
+  // browser setups with no visible warning at all — this sidesteps that
+  // entirely. Opens a new tab with the JSON already selected in a text box,
+  // so the user just presses Ctrl+C and pastes it wherever they need it —
+  // no DevTools required.
+  function openCopyTab(title, text) {
+    const win = window.open('', '_blank');
+    if (!win) return false; // popup blocked
+    win.document.title = title;
+    win.document.body.style.cssText =
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:20px;' +
+      'background:#1b1b1b;color:#fff;box-sizing:border-box;';
+    win.document.body.innerHTML =
+      '<p style="font-size:15px;margin:0 0 12px;">✅ Done — this text is already selected. ' +
+      'Press <b>Ctrl+C</b> (or <b>Cmd+C</b> on Mac) to copy it, then paste it wherever you need it.</p>' +
+      '<textarea id="cb-out" readonly style="width:100%;height:75vh;font:12px/1.4 monospace;' +
+      'padding:10px;box-sizing:border-box;background:#111;color:#0f0;border:1px solid #444;"></textarea>';
+    const ta = win.document.getElementById('cb-out');
+    ta.value = text;
+    ta.focus();
+    ta.select();
+    return true;
   }
 
   // Verified against real target.com product-listing markup (2026-08) — the
@@ -174,27 +197,34 @@
   };
 
   const jsonText = JSON.stringify(payload, null, 2);
-  window.__couponBunchTargetProducts = jsonText;
-  const blob = new Blob([jsonText], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'target-products-raw.json';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  window.__couponBunchTargetProducts = jsonText; // for `copy(__couponBunchTargetProducts)` in DevTools, if ever needed
 
-  let clipboardNote = '';
+  // Primary path: a new tab with the JSON pre-selected — no DevTools, and
+  // doesn't depend on the browser allowing a bookmarklet-triggered download.
+  const openedCopyTab = openCopyTab(
+    `CouponBunch — ${products.length} Target gift-card products (copy this)`,
+    jsonText
+  );
+
+  // Best-effort extras underneath — silent if blocked.
+  try {
+    const blob = new Blob([jsonText], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'target-products-raw.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {}
   try {
     await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
-    clipboardNote = ' Also copied to your clipboard.';
-  } catch (e) {
-    // clipboard permission denied, unsupported, or timed out — the download
-    // attempt above and window.__couponBunchTargetProducts are still available
-  }
+  } catch (e) {}
 
-  overlay.innerHTML = `✅ ${products.length} gift-card product(s) saved to target-products-raw.json.${clipboardNote}<br><br>Now run: python tools/import_target_products.py`;
+  overlay.innerHTML = openedCopyTab
+    ? `✅ ${products.length} gift-card product(s) found. A new tab opened with the data — press Ctrl+C there and paste it wherever you need it.`
+    : `✅ ${products.length} gift-card product(s) found, but the popup was blocked. Allow popups for this site and try again, or check your Downloads folder / clipboard.`;
   console.log(jsonText);
   setTimeout(() => overlay.remove(), 15000);
 })();
