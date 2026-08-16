@@ -3,10 +3,18 @@
  * (readable) version.
  *
  * Run this on Target's Circle offers / coupons page (e.g.
- * target.com/circle/offers), while logged in. Selectors are a best guess —
- * this sandbox has no network access to target.com to verify real markup
- * against. If it finds zero coupons, inspect an offer card in DevTools and
- * update the CANDIDATE_* selectors below, then re-run
+ * target.com/circle/offers), while logged in.
+ *
+ * Selectors below are evidence-based rather than pure guesses: a real
+ * target.com product-listing page's "Related deals" carousel (captured
+ * 2026-08) uses `[data-test^="item-card-"]` deal tiles with a
+ * `[data-test="deal-link"]` anchor whose `aria-label` holds the full offer
+ * text (e.g. "Buy 2 for $10 Scrubbing Bubbles toilet bowl cleaner", "$5
+ * Target GiftCard with 3 oral care items") — Target reuses this same deal-
+ * tile component elsewhere, so it's a reasonable starting point for the
+ * dedicated offers page too, though not confirmed against that exact page.
+ * If it finds zero coupons, inspect an offer card in DevTools and update
+ * the CANDIDATE_* selectors below, then re-run
  * `python tools/bookmarklet/build.py`.
  *
  * Usage: click the bookmark, it captures the current page's offers and
@@ -15,18 +23,22 @@
  */
 (() => {
   const CANDIDATE_CARD_SELECTORS = [
+    '[data-test^="item-card-"]',
     '[data-test="offer-card"]',
     '[data-test*="OfferCard"]',
     '[class*="OfferCard"]',
     '[class*="offer-card"]',
     'li[class*="offer"]',
   ];
-  const CANDIDATE_BRAND_SELECTORS = [
-    '[data-test*="brand"]', '[class*="Brand"]', '[class*="brand"]', 'h3', 'h4',
-  ];
+  // The deal tile's own link carries the full offer text in its aria-label
+  // regardless of how the visible text is split up internally — that's
+  // tried first in scrapeCards() below. These are the visible-text fallbacks.
   const CANDIDATE_DESC_SELECTORS = [
+    '[data-test="basket-offers-message"]',
+    '[data-test="pbo-title"]',
     '[data-test*="description"]', '[data-test*="title"]', '[class*="Description"]', 'p',
   ];
+  const CANDIDATE_SHORT_DESC_SELECTORS = ['[data-test="pbo-short-desc"]'];
 
   function makeOverlay() {
     const el = document.createElement('div');
@@ -53,11 +65,33 @@
     return [];
   }
 
+  // Real offer text doesn't always say "$X off" — "Buy 2 for $10 ..." and
+  // "$5 Target GiftCard with 3 oral care items" are both real observed
+  // phrasings. A card with none of these isn't a real coupon/gift-card
+  // offer (e.g. a plain "$79.99 sale" product tile), so it's skipped.
   function extractValue(text) {
     let m = (text || '').match(/\$\d+(?:\.\d{2})?\s+off/i);
     if (m) return m[0];
     m = (text || '').match(/\d+%\s+off/i);
+    if (m) return m[0];
+    m = (text || '').match(/buy\s+\d+\s+for\s+\$\d+(?:\.\d{2})?/i);
+    if (m) return m[0];
+    m = (text || '').match(/\$\d+(?:\.\d{2})?\s+target\s+gift\s?card/i);
     return m ? m[0] : '';
+  }
+
+  // No dedicated brand field exists on these deal tiles, so this strips the
+  // recognized value-phrase prefix and takes the leading run of capitalized
+  // words as an approximate brand (e.g. "Buy 2 for $10 Scrubbing Bubbles
+  // toilet bowl cleaner" -> "Scrubbing Bubbles"). Category-wide offers with
+  // no single brand (e.g. "...with 3 oral care items") correctly yield ''
+  // rather than a wrong guess.
+  const PREFIX_STRIP_RE = /^(\$\d+(?:\.\d{2})?\s+off\s+|\d+%\s+off\s+|buy\s+\d+\s+for\s+\$\d+(?:\.\d{2})?\s+|\$\d+(?:\.\d{2})?\s+target\s+gift\s?card\s+with\s+(?:\$\d+(?:\.\d{2})?|\d+)\s+[\w\s]*?(?:purchase|items?)\s*)/i;
+
+  function guessBrand(description) {
+    const stripped = description.replace(PREFIX_STRIP_RE, '').trim();
+    const m = stripped.match(/^([A-Z][\w'&]*(?:\s+[A-Z][\w'&.]*){0,2})/);
+    return m ? m[1] : '';
   }
 
   function scrapeCards() {
@@ -65,15 +99,23 @@
     const coupons = [];
 
     for (const card of cards) {
-      const brandEl = firstMatching(CANDIDATE_BRAND_SELECTORS, card)[0];
-      const descEl = firstMatching(CANDIDATE_DESC_SELECTORS, card)[0];
-      const cardText = card.textContent.replace(/\s+/g, ' ').trim();
-      const linkEl = card.querySelector('a');
+      const linkEl = card.querySelector('[data-test="deal-link"]') || card.querySelector('a');
+      const ariaText = linkEl ? (linkEl.getAttribute('aria-label') || '').trim() : '';
 
-      const brand = brandEl ? brandEl.textContent.trim() : '';
-      const description = descEl ? descEl.textContent.trim() : cardText.slice(0, 100);
-      const value = extractValue(cardText);
-      if (!brand || !description) continue;
+      const shortDescEl = firstMatching(CANDIDATE_SHORT_DESC_SELECTORS, card)[0];
+      const descEl = firstMatching(CANDIDATE_DESC_SELECTORS, card)[0];
+      const domText = [shortDescEl, descEl]
+        .filter(Boolean)
+        .map((el) => el.textContent.trim())
+        .join(' ')
+        .trim();
+      const cardText = card.textContent.replace(/\s+/g, ' ').trim();
+
+      const description = ariaText || domText || cardText.slice(0, 100);
+      const value = extractValue(description) || extractValue(cardText);
+      if (!description || !value) continue; // skip non-coupon tiles (e.g. plain product sales)
+
+      const brand = guessBrand(description);
 
       coupons.push({
         id: `${brand}-${description}`.replace(/\s+/g, '-').toLowerCase().slice(0, 60),
@@ -101,7 +143,7 @@
       '⚠️ No offers found on this page. The CSS selectors in ' +
       'scrape-target-coupons.src.js likely need updating for Target\'s current ' +
       'markup — inspect an offer card and edit CANDIDATE_CARD_SELECTORS / ' +
-      'CANDIDATE_BRAND_SELECTORS / CANDIDATE_DESC_SELECTORS.';
+      'CANDIDATE_DESC_SELECTORS / CANDIDATE_SHORT_DESC_SELECTORS.';
     console.warn('[CouponBunch] 0 offers found. Selectors may need updating.');
     return;
   }
