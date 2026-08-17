@@ -58,11 +58,18 @@ function parseCouponValue(value, price) {
   return { amount: 0, computable: false };
 }
 
+// Prefix match (one brand's words start with the other's), not raw
+// substring containment — plain .includes() would wrongly match unrelated
+// brands that happen to share an embedded word (e.g. "Bounty" vs "Nature's
+// Bounty", confirmed as a real false-positive bug on the Walgreens side of
+// this project). Requiring a shared leading word/phrase avoids that while
+// still matching "Tide" against "Tide Liquid Laundry Detergent".
 function brandsMatch(a, b) {
   if (!a || !b) return false;
   const na = a.trim().toLowerCase();
   const nb = b.trim().toLowerCase();
-  return na === nb || na.includes(nb) || nb.includes(na);
+  if (na === nb) return true;
+  return na.startsWith(nb + ' ') || nb.startsWith(na + ' ');
 }
 
 // Only pairs where a product has BOTH a gift-card promo AND a matching

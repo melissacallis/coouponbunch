@@ -4,10 +4,17 @@
  *
  * Weekly Ad items are the base list (each one is already a deal on its
  * own). A weekly-ad item only makes the list here if it ALSO has at least
- * one of: a matching manufacturer coupon, or a matching Walgreens Cash
- * rewards offer (brand match) — plain sale items with nothing to stack on
- * top are left out, same "only show what's actually worth combining"
- * philosophy as the Target Deals page.
+ * one stackable signal on top — plain sale items with nothing to stack are
+ * left out, same "only show what's actually worth combining" philosophy as
+ * the Target Deals page. Four signals count:
+ *   - a matching manufacturer coupon (brand match against walgreens_coupons.json)
+ *   - a matching Walgreens Cash rewards offer (brand match against walgreens_cashrewards.json)
+ *   - an embedded coupon printed right on the weekly-ad tile itself
+ *     (item.embedded_coupon_value) — more reliable than brand-matching
+ *     since it's already tied to this exact item
+ *   - an in-store myWalgreens rewards line printed on the tile
+ *     (item.in_store_reward_amount) — a different loyalty program from the
+ *     online "W Cash" rewards, tracked separately
  */
 
 let WEEKLY_AD = { items: [] };
@@ -24,11 +31,20 @@ function escapeHTML(str) {
   return div.innerHTML;
 }
 
+// Prefix match (one brand's words start with the other's), not raw
+// substring containment — "Bounty" (paper towels) vs "Nature's Bounty"
+// (vitamins) share the word "Bounty" but aren't the same brand, and plain
+// .includes() would wrongly match them (confirmed with real Walgreens data:
+// "Blue" from "Blue Diamond Almonds" also falsely matched "Clearblue
+// Ovulation Tests" this way). Requiring a shared leading word/phrase avoids
+// both false positives while still matching "Tide" against "Tide Liquid
+// Laundry Detergent".
 function brandsMatch(a, b) {
   if (!a || !b) return false;
   const na = a.trim().toLowerCase();
   const nb = b.trim().toLowerCase();
-  return na === nb || na.includes(nb) || nb.includes(na);
+  if (na === nb) return true;
+  return na.startsWith(nb + ' ') || nb.startsWith(na + ' ');
 }
 
 // Flat-dollar or percent-off coupons have a computable savings amount;
@@ -52,29 +68,42 @@ function cashRewardLabel(offer) {
   return `Get ${formatMoney(offer.amount)} Walgreens Cash`;
 }
 
-// Only weekly-ad items with at least one stackable match (coupon and/or
-// Cash rewards) make the list, ranked by total combined savings.
+// Only weekly-ad items with at least one stackable signal make the list,
+// ranked by total combined savings.
 function buildStacks(weeklyAd, coupons, cashRewards) {
   const stacks = [];
   for (const item of weeklyAd) {
     const coupon = coupons.find((c) => brandsMatch(c.brand, item.brand));
     const cashReward = cashRewards.find((r) => brandsMatch(r.brand, item.brand));
-    if (!coupon && !cashReward) continue;
+    const hasEmbeddedCoupon = !!item.embedded_coupon_value;
+    const hasInStoreReward = item.in_store_reward_amount != null;
+    if (!coupon && !cashReward && !hasEmbeddedCoupon && !hasInStoreReward) continue;
 
     const couponSavings = coupon ? parseCouponValue(coupon.value, item.sale_price) : { amount: 0, computable: true };
+    const embeddedCouponSavings = hasEmbeddedCoupon
+      ? parseCouponValue(item.embedded_coupon_value, item.sale_price)
+      : { amount: 0, computable: true };
     const cashRewardAmount = cashReward ? cashReward.amount : 0;
-    const anyUncomputable = coupon ? !couponSavings.computable : false;
-    const totalSavings = (couponSavings.computable ? couponSavings.amount : 0) + cashRewardAmount;
+    const inStoreRewardAmount = hasInStoreReward ? item.in_store_reward_amount : 0;
+    const anyUncomputable = (coupon && !couponSavings.computable) || (hasEmbeddedCoupon && !embeddedCouponSavings.computable);
+    const totalSavings =
+      (couponSavings.computable ? couponSavings.amount : 0) +
+      (embeddedCouponSavings.computable ? embeddedCouponSavings.amount : 0) +
+      cashRewardAmount +
+      inStoreRewardAmount;
     const finalPrice = Math.max(0, item.sale_price - totalSavings);
 
-    stacks.push({ item, coupon, cashReward, couponSavings, cashRewardAmount, totalSavings, finalPrice, anyUncomputable });
+    stacks.push({
+      item, coupon, cashReward, couponSavings, embeddedCouponSavings,
+      cashRewardAmount, inStoreRewardAmount, totalSavings, finalPrice, anyUncomputable,
+    });
   }
   stacks.sort((a, b) => b.totalSavings - a.totalSavings);
   return stacks;
 }
 
 function stackCardHTML(stack) {
-  const { item, coupon, cashReward, couponSavings, cashRewardAmount, totalSavings, finalPrice, anyUncomputable } = stack;
+  const { item, coupon, cashReward, couponSavings, cashRewardAmount, inStoreRewardAmount, totalSavings, finalPrice, anyUncomputable } = stack;
   return `
     <div class="w-card">
       <img class="w-card-img" src="${item.image ? escapeHTML(item.image) : ''}" alt="" loading="lazy"
@@ -85,9 +114,10 @@ function stackCardHTML(stack) {
           ${formatMoney(item.sale_price)}
           ${item.regular_price ? `<span class="w-card-regular">${formatMoney(item.regular_price)}</span>` : ''}
         </div>
-        ${item.deal_text ? `<div class="w-badge w-badge-weeklyad">📰 ${escapeHTML(item.deal_text)}</div>` : ''}
         ${coupon ? `<div class="w-badge w-badge-coupon">🏷️ ${escapeHTML(coupon.value)} — ${escapeHTML(coupon.description)}</div>` : ''}
+        ${item.embedded_coupon_value ? `<div class="w-badge w-badge-coupon">🏷️ ${escapeHTML(item.embedded_coupon_value)} on this item — ${escapeHTML(item.embedded_coupon_text || '')}</div>` : ''}
         ${cashReward ? `<div class="w-badge w-badge-cashback">💵 ${escapeHTML(cashRewardLabel(cashReward))}</div>` : ''}
+        ${inStoreRewardAmount ? `<div class="w-badge w-badge-cashback">🏬 Earn ${formatMoney(inStoreRewardAmount)} in-store rewards${item.in_store_reward_qty ? ` when you buy ${item.in_store_reward_qty}` : ''}</div>` : ''}
         ${anyUncomputable ? `<div class="w-note">Coupon savings not shown (not a flat $/% off) — check walgreens.com for the exact amount.</div>` : ''}
         <div class="w-savings">
           Save ${formatMoney(totalSavings)}${anyUncomputable ? '+' : ''} · Final price ~${formatMoney(finalPrice)}

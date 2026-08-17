@@ -2,14 +2,32 @@
  * CouponBunch Walgreens Weekly Ad scraping bookmarklet — source (readable)
  * version.
  *
- * UNVERIFIED: this project has no network access to walgreens.com, so
- * unlike some of the Target selectors, none of the CANDIDATE_* selectors
- * below have been checked against real markup. If it finds zero items,
- * inspect a product tile on the Weekly Ad page in DevTools and update the
- * CANDIDATE_* selector arrays, then re-run `python tools/bookmarklet/build.py`.
+ * Verified against real markup (captured 2026-08): every "Deals of the
+ * Week" tile — both the standard `offer-card-v2` style and the bigger
+ * `teaser-card` hero style — is a `[role="group"]` whose `aria-label`
+ * reads "product <full name>", which is the most robust way to get the
+ * name regardless of which card variant it is. A stable `offer-id`
+ * attribute on the same element gives a real unique ID (no card-boundary
+ * guessing needed). Price lives in `.offer-price-text` as separate
+ * `.integer-part`/`.fraction-part` spans (no literal "." in the text, so
+ * they're joined manually). Some tiles carry their own bonus signals right
+ * on the card:
+ *   - `.cash-offer .ao-title`/`.ao-subtitle` — an in-store myWalgreens
+ *     rewards line, e.g. "Earn $3 In-store rewards" + "when you buy 2".
+ *     This is a DIFFERENT program from the online "W Cash" rewards
+ *     scraped by scrape-walgreens-cashrewards.src.js, so it's kept as its
+ *     own field here rather than merged with that file's output.
+ *   - `.offer-footer .coupon-text` — an embedded manufacturer coupon
+ *     right on the tile itself (e.g. "$1 off online coupon"), which is a
+ *     much more reliable stack signal than brand-matching against the
+ *     separate coupons list, so it's captured directly as
+ *     `embedded_coupon_value`.
+ * Falls back to the old CANDIDATE_* guess-based approach if no
+ * `[role="group"][aria-label^="product "]` elements are found (e.g. a
+ * different page variant).
  *
- * Run this on Walgreens' Weekly Ad page (walgreens.com/weeklyad or similar),
- * while logged in with your store selected.
+ * Run this on Walgreens' "Deals of the Week" / Weekly Ad page, while
+ * logged in with your store selected.
  *
  * Usage: click the bookmark — it captures the current page's sale items and
  * opens a new tab with the JSON already selected in a text box (no DevTools
@@ -129,13 +147,102 @@
   }
 
   function extractPrice(text) {
-    const m = (text || '').match(/\$(\d+(?:\.\d{2})?)/);
-    return m ? parseFloat(m[1]) : null;
+    let m = (text || '').match(/\$(\d+(?:\.\d{2})?)/);
+    if (m) return parseFloat(m[1]);
+    m = (text || '').match(/(\d+)¢/);
+    if (m) return parseFloat(m[1]) / 100;
+    return null;
+  }
+
+  // The dollar amount is split across separate .integer-part/.fraction-part
+  // spans with no literal "." in the text (e.g. "4" and "99" rendered next
+  // to each other as "$4.99") — read them individually and join, falling
+  // back to a plain regex over the whole element's text for other price
+  // formats (multi-buy "2/$12", cents "88¢", ranges "$7 to $13", etc. — the
+  // regex just grabs the first dollar/cents amount it finds in those cases).
+  function extractPriceFromEl(priceEl) {
+    if (!priceEl) return null;
+    const intPart = priceEl.querySelector('.integer-part');
+    if (intPart) {
+      const fracPart = priceEl.querySelector('.fraction-part');
+      const intText = intPart.textContent.trim();
+      const fracText = fracPart ? fracPart.textContent.trim() : '';
+      const combined = fracText ? `${intText}.${fracText}` : intText;
+      const val = parseFloat(combined);
+      if (!isNaN(val)) return val;
+    }
+    return extractPrice(priceEl.textContent.replace(/\s+/g, ' ').trim());
   }
 
   function guessBrand(name) {
     if (!name) return '';
     return name.split(/\s+/).slice(0, 1).join(' ');
+  }
+
+  const IN_STORE_REWARD_RE = /Earn\s+\$(\d+(?:\.\d{2})?)\s+In-?store\s+rewards?/i;
+  const IN_STORE_QTY_RE = /buy\s+(\d+)/i;
+
+  function scrapeCardsById() {
+    const cards = Array.from(document.querySelectorAll('[role="group"][aria-label^="product "]'));
+    const items = [];
+
+    for (const card of cards) {
+      const ariaLabel = card.getAttribute('aria-label') || '';
+      const nameFromAria = ariaLabel.replace(/^product\s+/i, '').trim();
+      const headlineEl = card.querySelector('.headline');
+      const name = nameFromAria || (headlineEl ? headlineEl.textContent.trim() : '');
+      if (!name) continue;
+
+      const priceEl = card.querySelector('.offer-price-text');
+      const salePrice = extractPriceFromEl(priceEl);
+      if (salePrice == null) continue;
+
+      const imgEl = card.querySelector('.product-image') || card.querySelector('img');
+
+      const aoTitleEl = card.querySelector('.cash-offer .ao-title');
+      const aoSubtitleEl = card.querySelector('.cash-offer .ao-subtitle');
+      const aoText = [aoTitleEl, aoSubtitleEl]
+        .filter(Boolean)
+        .map((el) => el.textContent.replace(/\s+/g, ' ').trim())
+        .join(' ')
+        .trim();
+      const inStoreMatch = aoText.match(IN_STORE_REWARD_RE);
+      const inStoreQtyMatch = aoText.match(IN_STORE_QTY_RE);
+
+      const couponTextEl = card.querySelector('.offer-footer .coupon-text');
+      const embeddedCouponText = couponTextEl ? couponTextEl.textContent.replace(/\s+/g, ' ').trim() : '';
+      const embeddedCouponValue = extractValueFromText(embeddedCouponText);
+
+      items.push({
+        id: card.getAttribute('offer-id') || `${name}-${salePrice}`,
+        name,
+        brand: guessBrand(name),
+        sale_price: salePrice,
+        regular_price: null,
+        deal_text: aoText || '',
+        in_store_reward_amount: inStoreMatch ? parseFloat(inStoreMatch[1]) : null,
+        in_store_reward_qty: inStoreQtyMatch ? parseInt(inStoreQtyMatch[1], 10) : null,
+        embedded_coupon_text: embeddedCouponText || null,
+        embedded_coupon_value: embeddedCouponValue || null,
+        image: imgEl ? imgEl.src : null,
+        // "Shop products" opens an in-page dialog, not a real per-item URL —
+        // the Weekly Ad page itself is the closest thing.
+        url: location.href,
+      });
+    }
+    return items;
+  }
+
+  // Same dollar/percent/cents/"N for $" patterns proven out on H-E-B/Target,
+  // used here for the embedded coupon pill's own text (e.g. "$1 off online
+  // coupon").
+  function extractValueFromText(text) {
+    let m = (text || '').match(/\$\d+(?:\.\d{2})?\s+off(\s+\d+)?/i);
+    if (m) return m[0];
+    m = (text || '').match(/\d+%\s+off/i);
+    if (m) return m[0];
+    m = (text || '').match(/\d+¢\s+off(\s+\d+)?/i);
+    return m ? m[0] : '';
   }
 
   function extractId(card) {
@@ -146,7 +253,10 @@
     return m ? m[1] : href;
   }
 
-  function scrapeCards() {
+  // Fallback only, used if the page layout doesn't have
+  // [role="group"][aria-label^="product "] tiles at all (e.g. a different
+  // Walgreens page variant).
+  function scrapeCardsByGuessedSelectors() {
     const cards = firstMatching(CANDIDATE_CARD_SELECTORS);
     const items = [];
 
@@ -170,11 +280,20 @@
         sale_price: salePrice,
         regular_price: extractPrice(regularPriceEl ? regularPriceEl.textContent.trim() : ''),
         deal_text: dealEl ? dealEl.textContent.trim() : '',
+        in_store_reward_amount: null,
+        in_store_reward_qty: null,
+        embedded_coupon_text: null,
+        embedded_coupon_value: null,
         image: imgEl ? imgEl.src : null,
         url: linkEl ? new URL(linkEl.getAttribute('href'), location.origin).href : location.href,
       });
     }
     return items;
+  }
+
+  function scrapeCards() {
+    const byId = scrapeCardsById();
+    return byId.length > 0 ? byId : scrapeCardsByGuessedSelectors();
   }
 
   function findLoadMoreControl() {
@@ -221,10 +340,11 @@
 
   if (items.length === 0) {
     overlay.innerHTML =
-      '⚠️ No sale items found on this page. The CSS selectors in ' +
-      'scrape-walgreens-weeklyad.src.js are unverified guesses — inspect a ' +
-      'product tile in DevTools and edit CANDIDATE_CARD_SELECTORS / ' +
-      'CANDIDATE_NAME_SELECTORS / CANDIDATE_SALE_PRICE_SELECTORS.';
+      '⚠️ No sale items found on this page. Neither the ' +
+      '[role="group"][aria-label^="product "] tile pattern nor the ' +
+      'CANDIDATE_* selector fallbacks in scrape-walgreens-weeklyad.src.js ' +
+      'matched anything — inspect a product tile in DevTools and update ' +
+      'the script.';
     console.warn('[CouponBunch] 0 weekly ad items found. Selectors need updating.');
     return;
   }
