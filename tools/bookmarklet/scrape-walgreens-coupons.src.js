@@ -2,11 +2,28 @@
  * CouponBunch Walgreens manufacturer-coupons scraping bookmarklet — source
  * (readable) version.
  *
- * UNVERIFIED: this project has no network access to walgreens.com, so none
- * of the CANDIDATE_* selectors below have been checked against real markup.
- * If it finds zero coupons, inspect a coupon card on the page in DevTools
- * and update the CANDIDATE_* selector arrays, then re-run
- * `python tools/bookmarklet/build.py`.
+ * Verified against real markup (captured 2026-08) from Walgreens' coupons
+ * page: each offer tile's value/brand/description live in separate elements
+ * tied together by a shared numeric ID suffix, e.g.
+ *   <div id="summary0" title="...">$2 off ONE Product...</div>
+ *   <div id="brand0">Some Brand</div>
+ *   <div id="desc0">Online only offer...</div>
+ * rather than one wrapping "card" element — so instead of guessing a card
+ * container (the approach that caused real bugs on the H-E-B side of this
+ * project, sweeping in neighboring cards' text), this finds every
+ * `[id^="summary"]` element and looks up its `brandN`/`descN` siblings by ID
+ * directly. Falls back to the old CANDIDATE_* guess-based approach if no
+ * `summaryN` elements are found (e.g. a different page layout).
+ *
+ * Note: Walgreens truncates long text with a trailing "..." baked directly
+ * into both the visible text AND the `title` attribute on these elements —
+ * not just CSS ellipsis — so `description` may come through cut off. The
+ * `value` chip usually appears early enough in the text to survive.
+ *
+ * This same page also lists Cash-rewards-style offers ("Earn $X W Cash
+ * rewards...") mixed in with plain manufacturer coupons — those are skipped
+ * here (see scrape-walgreens-cashrewards.src.js, which can run on this same
+ * page and picks up exactly the ones this script skips).
  *
  * Run this on Walgreens' coupons page:
  *   https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons
@@ -142,7 +159,58 @@
     return candidates.find((el) => el.offsetParent !== null && !el.disabled) || null;
   }
 
-  function scrapeCards() {
+  // Cash-rewards-style offers share this same summary/brand/desc markup —
+  // recognized here so this scraper can skip them (they're handled by
+  // scrape-walgreens-cashrewards.src.js instead).
+  const CASH_REWARD_TEXT_RE = /w\s*cash|cash\s+reward/i;
+
+  function elementText(el) {
+    if (!el) return '';
+    return (el.getAttribute('title') || el.textContent || '').trim();
+  }
+
+  // Primary path: every offer tile has a `summaryN` element (the value
+  // chip) with `brandN`/`descN` siblings sharing the same numeric suffix —
+  // no card-boundary guessing needed at all.
+  function scrapeCardsById() {
+    const summaryEls = Array.from(document.querySelectorAll('[id^="summary"]')).filter((el) =>
+      /^summary\d+$/.test(el.id)
+    );
+    const coupons = [];
+
+    for (const summaryEl of summaryEls) {
+      const suffix = summaryEl.id.replace('summary', '');
+      const brandEl = document.getElementById('brand' + suffix);
+      const descEl = document.getElementById('desc' + suffix);
+
+      const summaryText = elementText(summaryEl);
+      if (CASH_REWARD_TEXT_RE.test(summaryText)) continue; // handled by the Cash-rewards scraper instead
+
+      const descText = elementText(descEl);
+      const value = extractValue(summaryText) || extractValue(descText);
+      if (!value) continue; // not a recognizable coupon value — skip
+
+      const container = summaryEl.closest('.card__item') || summaryEl.parentElement;
+      const cardText = container ? container.textContent.replace(/\s+/g, ' ').trim() : '';
+      const expiresMatch = cardText.match(/Expires\s+(\d{1,2}\/\d{1,2}\/\d{2,4})/i);
+
+      coupons.push({
+        id: 'w' + suffix,
+        brand: brandEl ? brandEl.textContent.trim() : guessBrand(descText || summaryText),
+        value,
+        description: descText || summaryText,
+        expires: expiresMatch ? expiresMatch[1] : '',
+        // "View details" links are JS dialogs (javascript:void(0)), not real
+        // per-coupon URLs — the coupons page itself is the closest thing.
+        url: location.href,
+      });
+    }
+    return coupons;
+  }
+
+  // Fallback only, used if the page layout doesn't have summaryN/brandN/
+  // descN elements at all (e.g. a different Walgreens page variant).
+  function scrapeCardsByGuessedSelectors() {
     const cards = firstMatching(CANDIDATE_CARD_SELECTORS);
     const coupons = [];
 
@@ -171,6 +239,11 @@
       });
     }
     return coupons;
+  }
+
+  function scrapeCards() {
+    const byId = scrapeCardsById();
+    return byId.length > 0 ? byId : scrapeCardsByGuessedSelectors();
   }
 
   async function scrapeAllCards(overlay) {
@@ -209,10 +282,10 @@
 
   if (coupons.length === 0) {
     overlay.innerHTML =
-      '⚠️ No coupons found on this page. The CSS selectors in ' +
-      'scrape-walgreens-coupons.src.js are unverified guesses — inspect a ' +
-      'coupon card in DevTools and edit CANDIDATE_CARD_SELECTORS / ' +
-      'CANDIDATE_DESC_SELECTORS.';
+      '⚠️ No coupons found on this page. Neither the summaryN/brandN/descN ' +
+      'ID pattern nor the CANDIDATE_* selector fallbacks in ' +
+      'scrape-walgreens-coupons.src.js matched anything — inspect a coupon ' +
+      'tile in DevTools and update the script.';
     console.warn('[CouponBunch] 0 coupons found. Selectors need updating.');
     return;
   }

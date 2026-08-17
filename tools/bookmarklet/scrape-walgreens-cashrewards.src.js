@@ -2,14 +2,26 @@
  * CouponBunch Walgreens Cash rewards scraping bookmarklet — source
  * (readable) version.
  *
- * UNVERIFIED: this project has no network access to walgreens.com, so none
- * of the CANDIDATE_* selectors below have been checked against real markup.
- * If it finds zero offers, inspect an offer card on the Walgreens Cash
- * rewards page in DevTools and update the CANDIDATE_* selector arrays, then
- * re-run `python tools/bookmarklet/build.py`.
+ * Verified against real markup (captured 2026-08): Cash-rewards-style
+ * offers ("Earn $10 W Cash rewards when y...") turn out to be mixed in with
+ * plain manufacturer coupons on Walgreens' regular coupons page, using the
+ * same summaryN/brandN/descN ID-linked structure (see the long comment in
+ * scrape-walgreens-coupons.src.js) rather than a wrapping "card" element —
+ * so this scraper works the same way: find every `[id^="summary"]` element
+ * and look up its `brandN`/`descN` siblings by ID, keeping only the ones
+ * whose text mentions "W Cash"/"Cash reward" (the ones the coupons scraper
+ * skips). Falls back to the old CANDIDATE_* guess-based approach if no
+ * `summaryN` elements are found.
  *
- * Run this on Walgreens' Cash rewards / myWalgreens offers page, while
- * logged in.
+ * Note: Walgreens truncates long text with a trailing "..." baked directly
+ * into both the visible text AND the `title` attribute — not just CSS
+ * ellipsis — so the spend/qty threshold in `parseCashRewardOffer()` often
+ * won't be captured even though the dollar amount itself usually is (it
+ * appears earlier in the string, before truncation).
+ *
+ * Run this on Walgreens' Cash rewards / myWalgreens offers page, or the
+ * regular coupons page (walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons)
+ * — both have shown Cash-rewards-style offers — while logged in.
  *
  * Usage: click the bookmark — it captures the current page's Cash rewards
  * offers (clicking a "Load more" button if present, or scrolling, to collect
@@ -106,13 +118,23 @@
     return [];
   }
 
-  // Real phrasing is unknown, so both a spend-based ("Spend $X, Get $Y
-  // Walgreens Cash") and a qty-based ("Buy N, Get $Y Walgreens Cash")
-  // pattern are checked, mirroring the two real phrasings Target actually
-  // turned out to use for its own gift-card promos.
+  // "Earn $X W Cash rewards when y..." is the real observed phrasing — the
+  // amount comes right after "Earn", before the text gets truncated, so
+  // it's checked first. Because of that truncation, the trailing
+  // spend/qty clause is often missing entirely (captured as undefined
+  // below, which is fine — the amount alone is still worth showing). The
+  // other patterns are speculative fallbacks for phrasing not yet observed,
+  // mirroring the two real phrasings Target turned out to use for its own
+  // gift-card promos.
   function parseCashRewardOffer(text) {
     if (!text) return null;
-    let m = text.match(/spend\s+\$(\d+(?:\.\d{2})?),?\s+get\s+\$(\d+(?:\.\d{2})?)\s+walgreens\s+cash/i);
+    let m = text.match(/earn\s+\$(\d+(?:\.\d{2})?)\s+w\s*cash\s+rewards?(?:\s+when\s+you\s+(?:spend\s+\$(\d+(?:\.\d{2})?)|buy\s+(\d+)))?/i);
+    if (m) {
+      if (m[2] != null) return { type: 'spend', threshold: parseFloat(m[2]), amount: parseFloat(m[1]) };
+      if (m[3] != null) return { type: 'qty', qty: parseInt(m[3], 10), amount: parseFloat(m[1]) };
+      return { type: 'earn', amount: parseFloat(m[1]) };
+    }
+    m = text.match(/spend\s+\$(\d+(?:\.\d{2})?),?\s+get\s+\$(\d+(?:\.\d{2})?)\s+walgreens\s+cash/i);
     if (m) return { type: 'spend', threshold: parseFloat(m[1]), amount: parseFloat(m[2]) };
     m = text.match(/buy\s+(\d+),?\s+get\s+\$(\d+(?:\.\d{2})?)\s+walgreens\s+cash/i);
     if (m) return { type: 'qty', qty: parseInt(m[1], 10), amount: parseFloat(m[2]) };
@@ -123,7 +145,7 @@
     return null;
   }
 
-  const PREFIX_STRIP_RE = /^(spend\s+\$\d+(?:\.\d{2})?,?\s+get\s+\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+(?:on|when you buy)?\s*|buy\s+\d+,?\s+get\s+\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+(?:on|when you buy)?\s*|\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+with\s+(?:\$\d+(?:\.\d{2})?|\d+)\s+[\w\s]*?(?:purchase|items?)\s*)/i;
+  const PREFIX_STRIP_RE = /^(earn\s+\$\d+(?:\.\d{2})?\s+w\s*cash\s+rewards?\s+(?:when\s+you\s+(?:spend\s+\$\d+(?:\.\d{2})?|buy\s+\d+))?\s*(?:on)?\s*|spend\s+\$\d+(?:\.\d{2})?,?\s+get\s+\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+(?:on|when you buy)?\s*|buy\s+\d+,?\s+get\s+\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+(?:on|when you buy)?\s*|\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+with\s+(?:\$\d+(?:\.\d{2})?|\d+)\s+[\w\s]*?(?:purchase|items?)\s*)/i;
 
   function guessBrand(description) {
     const stripped = description.replace(PREFIX_STRIP_RE, '').trim();
@@ -139,7 +161,51 @@
     return candidates.find((el) => el.offsetParent !== null && !el.disabled) || null;
   }
 
-  function scrapeCards() {
+  function elementText(el) {
+    if (!el) return '';
+    return (el.getAttribute('title') || el.textContent || '').trim();
+  }
+
+  // Primary path: every offer tile has a `summaryN` element with
+  // `brandN`/`descN` siblings sharing the same numeric suffix — no card-
+  // boundary guessing needed. Keeps only tiles that parse as a Cash-rewards
+  // offer (the coupons scraper keeps everything else from this same markup).
+  function scrapeCardsById() {
+    const summaryEls = Array.from(document.querySelectorAll('[id^="summary"]')).filter((el) =>
+      /^summary\d+$/.test(el.id)
+    );
+    const offers = [];
+
+    for (const summaryEl of summaryEls) {
+      const suffix = summaryEl.id.replace('summary', '');
+      const brandEl = document.getElementById('brand' + suffix);
+      const descEl = document.getElementById('desc' + suffix);
+
+      const summaryText = elementText(summaryEl);
+      const descText = elementText(descEl);
+      const offer = parseCashRewardOffer(summaryText) || parseCashRewardOffer(descText);
+      if (!offer) continue; // not a Cash-rewards offer — the coupons scraper handles it instead
+
+      const description = descText || summaryText;
+      offers.push({
+        id: 'w' + suffix,
+        brand: brandEl ? brandEl.textContent.trim() : guessBrand(description),
+        description,
+        amount: offer.amount,
+        offer_type: offer.type,
+        threshold: offer.threshold ?? null,
+        qty: offer.qty ?? null,
+        // "View details" links are JS dialogs (javascript:void(0)), not
+        // real per-offer URLs — the offers page itself is the closest thing.
+        url: location.href,
+      });
+    }
+    return offers;
+  }
+
+  // Fallback only, used if the page layout doesn't have summaryN/brandN/
+  // descN elements at all (e.g. a different Walgreens page variant).
+  function scrapeCardsByGuessedSelectors() {
     const cards = firstMatching(CANDIDATE_CARD_SELECTORS);
     const offers = [];
 
@@ -167,6 +233,11 @@
       });
     }
     return offers;
+  }
+
+  function scrapeCards() {
+    const byId = scrapeCardsById();
+    return byId.length > 0 ? byId : scrapeCardsByGuessedSelectors();
   }
 
   async function scrapeAllCards(overlay) {
@@ -205,10 +276,10 @@
 
   if (offers.length === 0) {
     overlay.innerHTML =
-      '⚠️ No Cash reward offers found on this page. The CSS selectors and ' +
-      'phrasing patterns in scrape-walgreens-cashrewards.src.js are ' +
-      'unverified guesses — inspect an offer card in DevTools and edit ' +
-      'CANDIDATE_CARD_SELECTORS / parseCashRewardOffer().';
+      '⚠️ No Cash reward offers found on this page. Either everything here ' +
+      'is a plain coupon with no Cash-rewards offers mixed in, or the ' +
+      'phrasing patterns in parseCashRewardOffer() (scrape-walgreens-' +
+      'cashrewards.src.js) need updating for wording not yet seen.';
     console.warn('[CouponBunch] 0 Cash reward offers found. Selectors need updating.');
     return;
   }
