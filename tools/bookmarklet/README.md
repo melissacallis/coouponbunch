@@ -70,6 +70,39 @@ bookmarklet finds nothing, inspect a real product/offer card in DevTools and
 update the `CANDIDATE_*` selector arrays at the top of the matching
 `scrape-target-*.src.js` file, then re-run `python tools/bookmarklet/build.py`.
 
+## Walgreens refresh (weekly ad + coupon + Cash rewards stacks)
+
+Three bookmarklets, same pattern:
+
+1. **📰 Scrape Walgreens Weekly Ad** — run on the Weekly Ad page, logged in
+   with your store selected. Downloads `walgreens-weeklyad-raw.json`. Then
+   run `python tools/import_walgreens_weeklyad.py`.
+2. **🏷️ Scrape Walgreens Coupons** — run on the
+   [coupons page](https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons),
+   logged in. Downloads `walgreens-coupons-raw.json`. Then run
+   `python tools/import_walgreens_coupons.py`.
+3. **💵 Scrape Walgreens Cash Rewards** — run on the Cash rewards /
+   myWalgreens offers page, logged in. Downloads `walgreens-cashrewards-raw.json`.
+   Then run `python tools/import_walgreens_cashrewards.py`.
+
+The [Walgreens Deals page](../../walgreens/index.html) only shows a weekly-ad
+item if it has **at least one** of a matching manufacturer coupon (from
+bookmarklet 2) or a matching Cash rewards offer (from bookmarklet 3) — run
+bookmarklet 1 plus at least one of the other two before expecting results.
+
+**Unlike the Target selectors, none of the Walgreens `CANDIDATE_*` selectors
+have been checked against real markup at all** — this project has no network
+access to walgreens.com. Run each bookmarklet and see what happens:
+
+- If it finds 0 items/coupons/offers, right-click a real product/coupon/offer
+  tile on the live page → **Inspect**, copy the surrounding HTML, and paste
+  it here in chat (or update the `CANDIDATE_*` selector arrays yourself at
+  the top of the matching `scrape-walgreens-*.src.js` file), then re-run
+  `python tools/bookmarklet/build.py`.
+- Same goes for the Cash rewards offer phrasing (`parseCashRewardOffer()` in
+  `scrape-walgreens-cashrewards.src.js`) — the real "Spend $X / Buy N, get $Y
+  Walgreens Cash" wording is guessed, not confirmed.
+
 ## Troubleshooting
 
 - **"No coupon cards found"** — make sure the coupon page fully finished

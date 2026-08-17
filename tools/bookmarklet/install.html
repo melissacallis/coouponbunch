@@ -1057,6 +1057,830 @@ it runs in your own logged-in browser, so it sees exactly what you see.</p>
   </details>
 </div>
 
+<div class="bookmarklet-card">
+  <h2>📰 Scrape Walgreens Weekly Ad</h2>
+  <p class="run-on">Run on: Walgreens' Weekly Ad page, while logged in with your store selected</p>
+  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20Walgreens%20Weekly%20Ad%20scraping%20bookmarklet%20%E2%80%94%20source%20%28readable%29%0A%20%2A%20version.%0A%20%2A%0A%20%2A%20UNVERIFIED%3A%20this%20project%20has%20no%20network%20access%20to%20walgreens.com%2C%20so%0A%20%2A%20unlike%20some%20of%20the%20Target%20selectors%2C%20none%20of%20the%20CANDIDATE_%2A%20selectors%0A%20%2A%20below%20have%20been%20checked%20against%20real%20markup.%20If%20it%20finds%20zero%20items%2C%0A%20%2A%20inspect%20a%20product%20tile%20on%20the%20Weekly%20Ad%20page%20in%20DevTools%20and%20update%20the%0A%20%2A%20CANDIDATE_%2A%20selector%20arrays%2C%20then%20re-run%20%60python%20tools/bookmarklet/build.py%60.%0A%20%2A%0A%20%2A%20Run%20this%20on%20Walgreens%27%20Weekly%20Ad%20page%20%28walgreens.com/weeklyad%20or%20similar%29%2C%0A%20%2A%20while%20logged%20in%20with%20your%20store%20selected.%0A%20%2A%0A%20%2A%20Usage%3A%20click%20the%20bookmark%20%E2%80%94%20it%20captures%20the%20current%20page%27s%20sale%20items%20and%0A%20%2A%20opens%20a%20new%20tab%20with%20the%20JSON%20already%20selected%20in%20a%20text%20box%20%28no%20DevTools%0A%20%2A%20needed%29.%20Press%20Ctrl%2BC%20there%2C%20then%20run%3A%0A%20%2A%20%20%20python%20tools/import_walgreens_weeklyad.py%20--file%20wherever-you-saved-it.json%0A%20%2A%20or%20paste%20it%20straight%20to%20Claude%20in%20chat.%0A%20%2A/%0A%28async%20%28%29%20%3D%3E%20%7B%0A%20%20const%20NO_GROWTH_ROUNDS_BEFORE_GIVING_UP%20%3D%204%3B%0A%20%20const%20MAX_ROUNDS%20%3D%2060%3B%0A%20%20const%20WAIT_AFTER_ACTION_MS%20%3D%201500%3B%0A%0A%20%20function%20sleep%28ms%29%20%7B%0A%20%20%20%20return%20new%20Promise%28%28resolve%29%20%3D%3E%20setTimeout%28resolve%2C%20ms%29%29%3B%0A%20%20%7D%0A%0A%20%20function%20withTimeout%28promise%2C%20ms%29%20%7B%0A%20%20%20%20return%20Promise.race%28%5B%0A%20%20%20%20%20%20promise%2C%0A%20%20%20%20%20%20new%20Promise%28%28_%2C%20reject%29%20%3D%3E%20setTimeout%28%28%29%20%3D%3E%20reject%28new%20Error%28%27timed%20out%27%29%29%2C%20ms%29%29%2C%0A%20%20%20%20%5D%29%3B%0A%20%20%7D%0A%0A%20%20function%20openCopyTab%28title%2C%20text%29%20%7B%0A%20%20%20%20const%20win%20%3D%20window.open%28%27%27%2C%20%27_blank%27%29%3B%0A%20%20%20%20if%20%28%21win%29%20return%20false%3B%20//%20popup%20blocked%0A%20%20%20%20win.document.title%20%3D%20title%3B%0A%20%20%20%20win.document.body.style.cssText%20%3D%0A%20%20%20%20%20%20%27font-family%3A-apple-system%2CBlinkMacSystemFont%2Csans-serif%3Bmargin%3A0%3Bpadding%3A20px%3B%27%20%2B%0A%20%20%20%20%20%20%27background%3A%231b1b1b%3Bcolor%3A%23fff%3Bbox-sizing%3Aborder-box%3B%27%3B%0A%20%20%20%20win.document.body.innerHTML%20%3D%0A%20%20%20%20%20%20%27%3Cp%20style%3D%22font-size%3A15px%3Bmargin%3A0%200%2012px%3B%22%3E%E2%9C%85%20Done%20%E2%80%94%20this%20text%20is%20already%20selected.%20%27%20%2B%0A%20%20%20%20%20%20%27Press%20%3Cb%3ECtrl%2BC%3C/b%3E%20%28or%20%3Cb%3ECmd%2BC%3C/b%3E%20on%20Mac%29%20to%20copy%20it%2C%20then%20paste%20it%20wherever%20you%20need%20it.%3C/p%3E%27%20%2B%0A%20%20%20%20%20%20%27%3Ctextarea%20id%3D%22cb-out%22%20readonly%20style%3D%22width%3A100%25%3Bheight%3A75vh%3Bfont%3A12px/1.4%20monospace%3B%27%20%2B%0A%20%20%20%20%20%20%27padding%3A10px%3Bbox-sizing%3Aborder-box%3Bbackground%3A%23111%3Bcolor%3A%230f0%3Bborder%3A1px%20solid%20%23444%3B%22%3E%3C/textarea%3E%27%3B%0A%20%20%20%20const%20ta%20%3D%20win.document.getElementById%28%27cb-out%27%29%3B%0A%20%20%20%20ta.value%20%3D%20text%3B%0A%20%20%20%20ta.focus%28%29%3B%0A%20%20%20%20ta.select%28%29%3B%0A%20%20%20%20return%20true%3B%0A%20%20%7D%0A%0A%20%20//%20Pure%20guesses%20%E2%80%94%20Walgreens%27%20real%20markup%20has%20never%20been%20inspected%20for%20this%0A%20%20//%20project.%20Common%20patterns%20across%20modern%20React%20storefronts%20are%20listed%0A%20%20//%20first%2C%20with%20looser%20class-name%20fallbacks%20after.%0A%20%20const%20CANDIDATE_CARD_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22product-tile%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22product-card%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22ProductTile%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22product-tile%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22ProductCard%22%5D%27%2C%0A%20%20%20%20%27li%5Bclass%2A%3D%22product%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_NAME_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22product-title%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22product-name%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22ProductTitle%22%5D%27%2C%0A%20%20%20%20%27a%5Bhref%2A%3D%22/store/c/%22%5D%27%2C%0A%20%20%20%20%27a%5Bhref%2A%3D%22/product/%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_BRAND_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22product-brand%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Brand%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_SALE_PRICE_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22product-price%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22price%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22salePrice%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Price%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_REGULAR_PRICE_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22regular-price%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22was-price%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22RegularPrice%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22WasPrice%22%5D%27%2C%0A%20%20%20%20%27s%27%2C%0A%20%20%5D%3B%0A%20%20//%20The%20%22Buy%201%20Get%201%2050%25%20off%22%20/%20%22%242%20off%22%20badge%20text%2C%20wherever%20it%20lives%20on%0A%20%20//%20the%20tile%20%E2%80%94%20checked%20wherever%20it%27s%20found%2C%20so%20the%20wrapping%20element%27s%20exact%0A%20%20//%20class%20doesn%27t%20matter%20much.%0A%20%20const%20CANDIDATE_DEAL_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22promotion%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22offer-badge%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Promo%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Offer%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Badge%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_IMAGE_SELECTORS%20%3D%20%5B%27img%27%5D%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-walgreens-weeklyad-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20setStatus%28overlay%2C%20text%29%20%7B%0A%20%20%20%20overlay.textContent%20%3D%20text%3B%0A%20%20%7D%0A%0A%20%20function%20firstMatching%28selectors%2C%20root%20%3D%20document%29%20%7B%0A%20%20%20%20for%20%28const%20sel%20of%20selectors%29%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20const%20els%20%3D%20root.querySelectorAll%28sel%29%3B%0A%20%20%20%20%20%20%20%20if%20%28els.length%20%3E%200%29%20return%20Array.from%28els%29%3B%0A%20%20%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%20%20//%20invalid%20selector%20for%20this%20browser%20%E2%80%94%20skip%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20%5B%5D%3B%0A%20%20%7D%0A%0A%20%20function%20extractPrice%28text%29%20%7B%0A%20%20%20%20const%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20parseFloat%28m%5B1%5D%29%20%3A%20null%3B%0A%20%20%7D%0A%0A%20%20function%20guessBrand%28name%29%20%7B%0A%20%20%20%20if%20%28%21name%29%20return%20%27%27%3B%0A%20%20%20%20return%20name.split%28/%5Cs%2B/%29.slice%280%2C%201%29.join%28%27%20%27%29%3B%0A%20%20%7D%0A%0A%20%20function%20extractId%28card%29%20%7B%0A%20%20%20%20const%20link%20%3D%20card.querySelector%28%27a%5Bhref%2A%3D%22/product/%22%5D%27%29%20%7C%7C%20card.querySelector%28%27a%5Bhref%5D%27%29%3B%0A%20%20%20%20if%20%28%21link%29%20return%20null%3B%0A%20%20%20%20const%20href%20%3D%20link.getAttribute%28%27href%27%29%20%7C%7C%20%27%27%3B%0A%20%20%20%20const%20m%20%3D%20href.match%28/%5C/%28%3F%3Aprod%7Cproduct%29%28%3F%3Auct%29%3F%5C/%28%5B%5Cw-%5D%2B%29/i%29%20%7C%7C%20href.match%28/sku%5B%3D/%5D%28%5B%5Cw-%5D%2B%29/i%29%3B%0A%20%20%20%20return%20m%20%3F%20m%5B1%5D%20%3A%20href%3B%0A%20%20%7D%0A%0A%20%20function%20scrapeCards%28%29%20%7B%0A%20%20%20%20const%20cards%20%3D%20firstMatching%28CANDIDATE_CARD_SELECTORS%29%3B%0A%20%20%20%20const%20items%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20card%20of%20cards%29%20%7B%0A%20%20%20%20%20%20const%20nameEl%20%3D%20firstMatching%28CANDIDATE_NAME_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20brandEl%20%3D%20firstMatching%28CANDIDATE_BRAND_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20salePriceEl%20%3D%20firstMatching%28CANDIDATE_SALE_PRICE_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20regularPriceEl%20%3D%20firstMatching%28CANDIDATE_REGULAR_PRICE_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20dealEl%20%3D%20firstMatching%28CANDIDATE_DEAL_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20imgEl%20%3D%20firstMatching%28CANDIDATE_IMAGE_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20linkEl%20%3D%20card.querySelector%28%27a%5Bhref%5D%27%29%3B%0A%0A%20%20%20%20%20%20const%20name%20%3D%20nameEl%20%3F%20nameEl.textContent.trim%28%29%20%3A%20%27%27%3B%0A%20%20%20%20%20%20const%20salePrice%20%3D%20extractPrice%28salePriceEl%20%3F%20salePriceEl.textContent.trim%28%29%20%3A%20%27%27%29%3B%0A%20%20%20%20%20%20if%20%28%21name%20%7C%7C%20salePrice%20%3D%3D%20null%29%20continue%3B%0A%0A%20%20%20%20%20%20items.push%28%7B%0A%20%20%20%20%20%20%20%20id%3A%20extractId%28card%29%20%7C%7C%20%60%24%7Bname%7D-%24%7BsalePrice%7D%60%2C%0A%20%20%20%20%20%20%20%20name%2C%0A%20%20%20%20%20%20%20%20brand%3A%20brandEl%20%3F%20brandEl.textContent.trim%28%29%20%3A%20guessBrand%28name%29%2C%0A%20%20%20%20%20%20%20%20sale_price%3A%20salePrice%2C%0A%20%20%20%20%20%20%20%20regular_price%3A%20extractPrice%28regularPriceEl%20%3F%20regularPriceEl.textContent.trim%28%29%20%3A%20%27%27%29%2C%0A%20%20%20%20%20%20%20%20deal_text%3A%20dealEl%20%3F%20dealEl.textContent.trim%28%29%20%3A%20%27%27%2C%0A%20%20%20%20%20%20%20%20image%3A%20imgEl%20%3F%20imgEl.src%20%3A%20null%2C%0A%20%20%20%20%20%20%20%20url%3A%20linkEl%20%3F%20new%20URL%28linkEl.getAttribute%28%27href%27%29%2C%20location.origin%29.href%20%3A%20location.href%2C%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20items%3B%0A%20%20%7D%0A%0A%20%20function%20findLoadMoreControl%28%29%20%7B%0A%20%20%20%20const%20candidates%20%3D%20Array.from%28document.querySelectorAll%28%27a%2C%20button%27%29%29.filter%28%28el%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20const%20text%20%3D%20%28el.textContent%20%7C%7C%20%27%27%29.trim%28%29.toLowerCase%28%29%3B%0A%20%20%20%20%20%20return%20/load%20more%7Csee%20more%7Cshow%20more%7Cmore%20%28items%7Cdeals%7Cproducts%29/i.test%28text%29%3B%0A%20%20%20%20%7D%29%3B%0A%20%20%20%20return%20candidates.find%28%28el%29%20%3D%3E%20el.offsetParent%20%21%3D%3D%20null%20%26%26%20%21el.disabled%29%20%7C%7C%20null%3B%0A%20%20%7D%0A%0A%20%20async%20function%20scrapeAllCards%28overlay%29%20%7B%0A%20%20%20%20const%20byId%20%3D%20new%20Map%28%29%3B%0A%20%20%20%20let%20noGrowthRounds%20%3D%200%3B%0A%0A%20%20%20%20for%20%28let%20round%20%3D%201%3B%20round%20%3C%3D%20MAX_ROUNDS%20%26%26%20noGrowthRounds%20%3C%20NO_GROWTH_ROUNDS_BEFORE_GIVING_UP%3B%20round%2B%2B%29%20%7B%0A%20%20%20%20%20%20const%20before%20%3D%20byId.size%3B%0A%20%20%20%20%20%20for%20%28const%20c%20of%20scrapeCards%28%29%29%20byId.set%28c.id%2C%20c%29%3B%0A%20%20%20%20%20%20setStatus%28overlay%2C%20%60Loading%20more%20items%E2%80%A6%20%24%7BbyId.size%7D%20found%20so%20far%E2%80%A6%60%29%3B%0A%0A%20%20%20%20%20%20noGrowthRounds%20%3D%20byId.size%20%3E%20before%20%3F%200%20%3A%20noGrowthRounds%20%2B%201%3B%0A%0A%20%20%20%20%20%20const%20loadMoreBtn%20%3D%20findLoadMoreControl%28%29%3B%0A%20%20%20%20%20%20if%20%28loadMoreBtn%29%20%7B%0A%20%20%20%20%20%20%20%20loadMoreBtn.click%28%29%3B%0A%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20window.scrollTo%280%2C%20document.body.scrollHeight%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20await%20sleep%28WAIT_AFTER_ACTION_MS%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20return%20Array.from%28byId.values%28%29%29%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20if%20%28%21location.hostname.endsWith%28%27walgreens.com%27%29%29%20%7B%0A%20%20%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20%20%20overlay.textContent%20%3D%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20a%20walgreens.com%20Weekly%20Ad%20page%2C%20not%20here.%27%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20setStatus%28overlay%2C%20%27Scanning%20for%20sale%20items%E2%80%A6%27%29%3B%0A%20%20const%20items%20%3D%20await%20scrapeAllCards%28overlay%29%3B%0A%0A%20%20if%20%28items.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20overlay.innerHTML%20%3D%0A%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20sale%20items%20found%20on%20this%20page.%20The%20CSS%20selectors%20in%20%27%20%2B%0A%20%20%20%20%20%20%27scrape-walgreens-weeklyad.src.js%20are%20unverified%20guesses%20%E2%80%94%20inspect%20a%20%27%20%2B%0A%20%20%20%20%20%20%27product%20tile%20in%20DevTools%20and%20edit%20CANDIDATE_CARD_SELECTORS%20/%20%27%20%2B%0A%20%20%20%20%20%20%27CANDIDATE_NAME_SELECTORS%20/%20CANDIDATE_SALE_PRICE_SELECTORS.%27%3B%0A%20%20%20%20console.warn%28%27%5BCouponBunch%5D%200%20weekly%20ad%20items%20found.%20Selectors%20need%20updating.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20source_url%3A%20location.href%2C%0A%20%20%20%20items%2C%0A%20%20%7D%3B%0A%0A%20%20const%20jsonText%20%3D%20JSON.stringify%28payload%2C%20null%2C%202%29%3B%0A%20%20window.__couponBunchWalgreensWeeklyAd%20%3D%20jsonText%3B%0A%0A%20%20const%20openedCopyTab%20%3D%20openCopyTab%28%0A%20%20%20%20%60CouponBunch%20%E2%80%94%20%24%7Bitems.length%7D%20Walgreens%20Weekly%20Ad%20items%20%28copy%20this%29%60%2C%0A%20%20%20%20jsonText%0A%20%20%29%3B%0A%0A%20%20try%20%7B%0A%20%20%20%20const%20blob%20%3D%20new%20Blob%28%5BjsonText%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20%20%20a.href%20%3D%20url%3B%0A%20%20%20%20a.download%20%3D%20%27walgreens-weeklyad-raw.json%27%3B%0A%20%20%20%20document.body.appendChild%28a%29%3B%0A%20%20%20%20a.click%28%29%3B%0A%20%20%20%20a.remove%28%29%3B%0A%20%20%20%20URL.revokeObjectURL%28url%29%3B%0A%20%20%7D%20catch%20%28e%29%20%7B%7D%0A%20%20try%20%7B%0A%20%20%20%20await%20withTimeout%28navigator.clipboard.writeText%28jsonText%29%2C%202000%29%3B%0A%20%20%7D%20catch%20%28e%29%20%7B%7D%0A%0A%20%20overlay.innerHTML%20%3D%20openedCopyTab%0A%20%20%20%20%3F%20%60%E2%9C%85%20%24%7Bitems.length%7D%20item%28s%29%20found.%20A%20new%20tab%20opened%20with%20the%20data%20%E2%80%94%20press%20Ctrl%2BC%20there%20and%20paste%20it%20wherever%20you%20need%20it.%60%0A%20%20%20%20%3A%20%60%E2%9C%85%20%24%7Bitems.length%7D%20item%28s%29%20found%2C%20but%20the%20popup%20was%20blocked.%20Allow%20popups%20for%20this%20site%20and%20try%20again%2C%20or%20check%20your%20Downloads%20folder%20/%20clipboard.%60%3B%0A%20%20console.log%28jsonText%29%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20overlay.remove%28%29%2C%2015000%29%3B%0A%7D%29%28%29%3B%0A">📰 Scrape Walgreens Weekly Ad</a> ← drag this to your bookmarks bar</p>
+  <ol class="steps">
+    <li>Go to the page above, logged in.</li>
+    <li>Click the bookmark. Watch the on-page progress box.</li>
+    <li>A file downloads automatically to your Downloads folder.</li>
+    <li>Run <code>python tools/import_walgreens_weeklyad.py</code> and follow the prompt.</li>
+  </ol>
+  <details>
+    <summary>Bookmark won't drag, or your browser strips javascript: links? Use the console instead.</summary>
+    <p>Open DevTools (F12) on the page above, go to the Console tab, paste the script below, and press Enter.</p>
+    <pre><code>/**
+ * CouponBunch Walgreens Weekly Ad scraping bookmarklet — source (readable)
+ * version.
+ *
+ * UNVERIFIED: this project has no network access to walgreens.com, so
+ * unlike some of the Target selectors, none of the CANDIDATE_* selectors
+ * below have been checked against real markup. If it finds zero items,
+ * inspect a product tile on the Weekly Ad page in DevTools and update the
+ * CANDIDATE_* selector arrays, then re-run `python tools/bookmarklet/build.py`.
+ *
+ * Run this on Walgreens&#x27; Weekly Ad page (walgreens.com/weeklyad or similar),
+ * while logged in with your store selected.
+ *
+ * Usage: click the bookmark — it captures the current page&#x27;s sale items and
+ * opens a new tab with the JSON already selected in a text box (no DevTools
+ * needed). Press Ctrl+C there, then run:
+ *   python tools/import_walgreens_weeklyad.py --file wherever-you-saved-it.json
+ * or paste it straight to Claude in chat.
+ */
+(async () =&gt; {
+  const NO_GROWTH_ROUNDS_BEFORE_GIVING_UP = 4;
+  const MAX_ROUNDS = 60;
+  const WAIT_AFTER_ACTION_MS = 1500;
+
+  function sleep(ms) {
+    return new Promise((resolve) =&gt; setTimeout(resolve, ms));
+  }
+
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =&gt; setTimeout(() =&gt; reject(new Error(&#x27;timed out&#x27;)), ms)),
+    ]);
+  }
+
+  function openCopyTab(title, text) {
+    const win = window.open(&#x27;&#x27;, &#x27;_blank&#x27;);
+    if (!win) return false; // popup blocked
+    win.document.title = title;
+    win.document.body.style.cssText =
+      &#x27;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:20px;&#x27; +
+      &#x27;background:#1b1b1b;color:#fff;box-sizing:border-box;&#x27;;
+    win.document.body.innerHTML =
+      &#x27;&lt;p style=&quot;font-size:15px;margin:0 0 12px;&quot;&gt;✅ Done — this text is already selected. &#x27; +
+      &#x27;Press &lt;b&gt;Ctrl+C&lt;/b&gt; (or &lt;b&gt;Cmd+C&lt;/b&gt; on Mac) to copy it, then paste it wherever you need it.&lt;/p&gt;&#x27; +
+      &#x27;&lt;textarea id=&quot;cb-out&quot; readonly style=&quot;width:100%;height:75vh;font:12px/1.4 monospace;&#x27; +
+      &#x27;padding:10px;box-sizing:border-box;background:#111;color:#0f0;border:1px solid #444;&quot;&gt;&lt;/textarea&gt;&#x27;;
+    const ta = win.document.getElementById(&#x27;cb-out&#x27;);
+    ta.value = text;
+    ta.focus();
+    ta.select();
+    return true;
+  }
+
+  // Pure guesses — Walgreens&#x27; real markup has never been inspected for this
+  // project. Common patterns across modern React storefronts are listed
+  // first, with looser class-name fallbacks after.
+  const CANDIDATE_CARD_SELECTORS = [
+    &#x27;[data-testid=&quot;product-tile&quot;]&#x27;,
+    &#x27;[data-testid=&quot;product-card&quot;]&#x27;,
+    &#x27;[class*=&quot;ProductTile&quot;]&#x27;,
+    &#x27;[class*=&quot;product-tile&quot;]&#x27;,
+    &#x27;[class*=&quot;ProductCard&quot;]&#x27;,
+    &#x27;li[class*=&quot;product&quot;]&#x27;,
+  ];
+  const CANDIDATE_NAME_SELECTORS = [
+    &#x27;[data-testid=&quot;product-title&quot;]&#x27;,
+    &#x27;[data-testid=&quot;product-name&quot;]&#x27;,
+    &#x27;[class*=&quot;ProductTitle&quot;]&#x27;,
+    &#x27;a[href*=&quot;/store/c/&quot;]&#x27;,
+    &#x27;a[href*=&quot;/product/&quot;]&#x27;,
+  ];
+  const CANDIDATE_BRAND_SELECTORS = [
+    &#x27;[data-testid=&quot;product-brand&quot;]&#x27;,
+    &#x27;[class*=&quot;Brand&quot;]&#x27;,
+  ];
+  const CANDIDATE_SALE_PRICE_SELECTORS = [
+    &#x27;[data-testid=&quot;product-price&quot;]&#x27;,
+    &#x27;[data-testid=&quot;price&quot;]&#x27;,
+    &#x27;[class*=&quot;salePrice&quot;]&#x27;,
+    &#x27;[class*=&quot;Price&quot;]&#x27;,
+  ];
+  const CANDIDATE_REGULAR_PRICE_SELECTORS = [
+    &#x27;[data-testid=&quot;regular-price&quot;]&#x27;,
+    &#x27;[data-testid=&quot;was-price&quot;]&#x27;,
+    &#x27;[class*=&quot;RegularPrice&quot;]&#x27;,
+    &#x27;[class*=&quot;WasPrice&quot;]&#x27;,
+    &#x27;s&#x27;,
+  ];
+  // The &quot;Buy 1 Get 1 50% off&quot; / &quot;$2 off&quot; badge text, wherever it lives on
+  // the tile — checked wherever it&#x27;s found, so the wrapping element&#x27;s exact
+  // class doesn&#x27;t matter much.
+  const CANDIDATE_DEAL_SELECTORS = [
+    &#x27;[data-testid=&quot;promotion&quot;]&#x27;,
+    &#x27;[data-testid=&quot;offer-badge&quot;]&#x27;,
+    &#x27;[class*=&quot;Promo&quot;]&#x27;,
+    &#x27;[class*=&quot;Offer&quot;]&#x27;,
+    &#x27;[class*=&quot;Badge&quot;]&#x27;,
+  ];
+  const CANDIDATE_IMAGE_SELECTORS = [&#x27;img&#x27;];
+
+  function makeOverlay() {
+    const el = document.createElement(&#x27;div&#x27;);
+    el.id = &#x27;coupon-bunch-walgreens-weeklyad-overlay&#x27;;
+    el.style.cssText = [
+      &#x27;position:fixed&#x27;, &#x27;top:16px&#x27;, &#x27;right:16px&#x27;, &#x27;z-index:999999&#x27;,
+      &#x27;background:#1b1b1b&#x27;, &#x27;color:#fff&#x27;, &#x27;font:13px/1.4 -apple-system,sans-serif&#x27;,
+      &#x27;padding:12px 16px&#x27;, &#x27;border-radius:10px&#x27;, &#x27;box-shadow:0 4px 16px rgba(0,0,0,.3)&#x27;,
+      &#x27;max-width:280px&#x27;,
+    ].join(&#x27;;&#x27;);
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function setStatus(overlay, text) {
+    overlay.textContent = text;
+  }
+
+  function firstMatching(selectors, root = document) {
+    for (const sel of selectors) {
+      try {
+        const els = root.querySelectorAll(sel);
+        if (els.length &gt; 0) return Array.from(els);
+      } catch (e) {
+        // invalid selector for this browser — skip
+      }
+    }
+    return [];
+  }
+
+  function extractPrice(text) {
+    const m = (text || &#x27;&#x27;).match(/\$(\d+(?:\.\d{2})?)/);
+    return m ? parseFloat(m[1]) : null;
+  }
+
+  function guessBrand(name) {
+    if (!name) return &#x27;&#x27;;
+    return name.split(/\s+/).slice(0, 1).join(&#x27; &#x27;);
+  }
+
+  function extractId(card) {
+    const link = card.querySelector(&#x27;a[href*=&quot;/product/&quot;]&#x27;) || card.querySelector(&#x27;a[href]&#x27;);
+    if (!link) return null;
+    const href = link.getAttribute(&#x27;href&#x27;) || &#x27;&#x27;;
+    const m = href.match(/\/(?:prod|product)(?:uct)?\/([\w-]+)/i) || href.match(/sku[=/]([\w-]+)/i);
+    return m ? m[1] : href;
+  }
+
+  function scrapeCards() {
+    const cards = firstMatching(CANDIDATE_CARD_SELECTORS);
+    const items = [];
+
+    for (const card of cards) {
+      const nameEl = firstMatching(CANDIDATE_NAME_SELECTORS, card)[0];
+      const brandEl = firstMatching(CANDIDATE_BRAND_SELECTORS, card)[0];
+      const salePriceEl = firstMatching(CANDIDATE_SALE_PRICE_SELECTORS, card)[0];
+      const regularPriceEl = firstMatching(CANDIDATE_REGULAR_PRICE_SELECTORS, card)[0];
+      const dealEl = firstMatching(CANDIDATE_DEAL_SELECTORS, card)[0];
+      const imgEl = firstMatching(CANDIDATE_IMAGE_SELECTORS, card)[0];
+      const linkEl = card.querySelector(&#x27;a[href]&#x27;);
+
+      const name = nameEl ? nameEl.textContent.trim() : &#x27;&#x27;;
+      const salePrice = extractPrice(salePriceEl ? salePriceEl.textContent.trim() : &#x27;&#x27;);
+      if (!name || salePrice == null) continue;
+
+      items.push({
+        id: extractId(card) || `${name}-${salePrice}`,
+        name,
+        brand: brandEl ? brandEl.textContent.trim() : guessBrand(name),
+        sale_price: salePrice,
+        regular_price: extractPrice(regularPriceEl ? regularPriceEl.textContent.trim() : &#x27;&#x27;),
+        deal_text: dealEl ? dealEl.textContent.trim() : &#x27;&#x27;,
+        image: imgEl ? imgEl.src : null,
+        url: linkEl ? new URL(linkEl.getAttribute(&#x27;href&#x27;), location.origin).href : location.href,
+      });
+    }
+    return items;
+  }
+
+  function findLoadMoreControl() {
+    const candidates = Array.from(document.querySelectorAll(&#x27;a, button&#x27;)).filter((el) =&gt; {
+      const text = (el.textContent || &#x27;&#x27;).trim().toLowerCase();
+      return /load more|see more|show more|more (items|deals|products)/i.test(text);
+    });
+    return candidates.find((el) =&gt; el.offsetParent !== null &amp;&amp; !el.disabled) || null;
+  }
+
+  async function scrapeAllCards(overlay) {
+    const byId = new Map();
+    let noGrowthRounds = 0;
+
+    for (let round = 1; round &lt;= MAX_ROUNDS &amp;&amp; noGrowthRounds &lt; NO_GROWTH_ROUNDS_BEFORE_GIVING_UP; round++) {
+      const before = byId.size;
+      for (const c of scrapeCards()) byId.set(c.id, c);
+      setStatus(overlay, `Loading more items… ${byId.size} found so far…`);
+
+      noGrowthRounds = byId.size &gt; before ? 0 : noGrowthRounds + 1;
+
+      const loadMoreBtn = findLoadMoreControl();
+      if (loadMoreBtn) {
+        loadMoreBtn.click();
+      } else {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+      await sleep(WAIT_AFTER_ACTION_MS);
+    }
+
+    return Array.from(byId.values());
+  }
+
+  // --- main ---
+  if (!location.hostname.endsWith(&#x27;walgreens.com&#x27;)) {
+    const overlay = makeOverlay();
+    overlay.textContent = &#x27;⚠️ Run this on a walgreens.com Weekly Ad page, not here.&#x27;;
+    return;
+  }
+
+  const overlay = makeOverlay();
+  setStatus(overlay, &#x27;Scanning for sale items…&#x27;);
+  const items = await scrapeAllCards(overlay);
+
+  if (items.length === 0) {
+    overlay.innerHTML =
+      &#x27;⚠️ No sale items found on this page. The CSS selectors in &#x27; +
+      &#x27;scrape-walgreens-weeklyad.src.js are unverified guesses — inspect a &#x27; +
+      &#x27;product tile in DevTools and edit CANDIDATE_CARD_SELECTORS / &#x27; +
+      &#x27;CANDIDATE_NAME_SELECTORS / CANDIDATE_SALE_PRICE_SELECTORS.&#x27;;
+    console.warn(&#x27;[CouponBunch] 0 weekly ad items found. Selectors need updating.&#x27;);
+    return;
+  }
+
+  const payload = {
+    scraped_at: new Date().toISOString(),
+    source: &#x27;bookmarklet&#x27;,
+    source_url: location.href,
+    items,
+  };
+
+  const jsonText = JSON.stringify(payload, null, 2);
+  window.__couponBunchWalgreensWeeklyAd = jsonText;
+
+  const openedCopyTab = openCopyTab(
+    `CouponBunch — ${items.length} Walgreens Weekly Ad items (copy this)`,
+    jsonText
+  );
+
+  try {
+    const blob = new Blob([jsonText], { type: &#x27;application/json&#x27; });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement(&#x27;a&#x27;);
+    a.href = url;
+    a.download = &#x27;walgreens-weeklyad-raw.json&#x27;;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {}
+  try {
+    await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
+  } catch (e) {}
+
+  overlay.innerHTML = openedCopyTab
+    ? `✅ ${items.length} item(s) found. A new tab opened with the data — press Ctrl+C there and paste it wherever you need it.`
+    : `✅ ${items.length} item(s) found, but the popup was blocked. Allow popups for this site and try again, or check your Downloads folder / clipboard.`;
+  console.log(jsonText);
+  setTimeout(() =&gt; overlay.remove(), 15000);
+})();
+</code></pre>
+  </details>
+</div>
+
+<div class="bookmarklet-card">
+  <h2>🏷️ Scrape Walgreens Coupons</h2>
+  <p class="run-on">Run on: Walgreens' coupons page (walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons), while logged in</p>
+  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20Walgreens%20manufacturer-coupons%20scraping%20bookmarklet%20%E2%80%94%20source%0A%20%2A%20%28readable%29%20version.%0A%20%2A%0A%20%2A%20UNVERIFIED%3A%20this%20project%20has%20no%20network%20access%20to%20walgreens.com%2C%20so%20none%0A%20%2A%20of%20the%20CANDIDATE_%2A%20selectors%20below%20have%20been%20checked%20against%20real%20markup.%0A%20%2A%20If%20it%20finds%20zero%20coupons%2C%20inspect%20a%20coupon%20card%20on%20the%20page%20in%20DevTools%0A%20%2A%20and%20update%20the%20CANDIDATE_%2A%20selector%20arrays%2C%20then%20re-run%0A%20%2A%20%60python%20tools/bookmarklet/build.py%60.%0A%20%2A%0A%20%2A%20Run%20this%20on%20Walgreens%27%20coupons%20page%3A%0A%20%2A%20%20%20https%3A//www.walgreens.com/offers/offers.jsp%3Fban%3Ddl_dlsp_MegaMenu_Coupons%0A%20%2A%20while%20logged%20in.%0A%20%2A%0A%20%2A%20Usage%3A%20click%20the%20bookmark%20%E2%80%94%20it%20captures%20the%20current%20page%27s%20coupons%0A%20%2A%20%28clicking%20a%20%22Load%20more%22%20button%20if%20present%2C%20or%20scrolling%2C%20to%20collect%20all%20of%0A%20%2A%20them%29%20and%20opens%20a%20new%20tab%20with%20the%20JSON%20already%20selected%20in%20a%20text%20box%20%28no%0A%20%2A%20DevTools%20needed%29.%20Press%20Ctrl%2BC%20there%2C%20then%20run%3A%0A%20%2A%20%20%20python%20tools/import_walgreens_coupons.py%20--file%20wherever-you-saved-it.json%0A%20%2A%20or%20paste%20it%20straight%20to%20Claude%20in%20chat.%0A%20%2A/%0A%28async%20%28%29%20%3D%3E%20%7B%0A%20%20const%20NO_GROWTH_ROUNDS_BEFORE_GIVING_UP%20%3D%204%3B%0A%20%20const%20MAX_ROUNDS%20%3D%2060%3B%0A%20%20const%20WAIT_AFTER_ACTION_MS%20%3D%201500%3B%0A%0A%20%20function%20sleep%28ms%29%20%7B%0A%20%20%20%20return%20new%20Promise%28%28resolve%29%20%3D%3E%20setTimeout%28resolve%2C%20ms%29%29%3B%0A%20%20%7D%0A%0A%20%20function%20withTimeout%28promise%2C%20ms%29%20%7B%0A%20%20%20%20return%20Promise.race%28%5B%0A%20%20%20%20%20%20promise%2C%0A%20%20%20%20%20%20new%20Promise%28%28_%2C%20reject%29%20%3D%3E%20setTimeout%28%28%29%20%3D%3E%20reject%28new%20Error%28%27timed%20out%27%29%29%2C%20ms%29%29%2C%0A%20%20%20%20%5D%29%3B%0A%20%20%7D%0A%0A%20%20function%20openCopyTab%28title%2C%20text%29%20%7B%0A%20%20%20%20const%20win%20%3D%20window.open%28%27%27%2C%20%27_blank%27%29%3B%0A%20%20%20%20if%20%28%21win%29%20return%20false%3B%20//%20popup%20blocked%0A%20%20%20%20win.document.title%20%3D%20title%3B%0A%20%20%20%20win.document.body.style.cssText%20%3D%0A%20%20%20%20%20%20%27font-family%3A-apple-system%2CBlinkMacSystemFont%2Csans-serif%3Bmargin%3A0%3Bpadding%3A20px%3B%27%20%2B%0A%20%20%20%20%20%20%27background%3A%231b1b1b%3Bcolor%3A%23fff%3Bbox-sizing%3Aborder-box%3B%27%3B%0A%20%20%20%20win.document.body.innerHTML%20%3D%0A%20%20%20%20%20%20%27%3Cp%20style%3D%22font-size%3A15px%3Bmargin%3A0%200%2012px%3B%22%3E%E2%9C%85%20Done%20%E2%80%94%20this%20text%20is%20already%20selected.%20%27%20%2B%0A%20%20%20%20%20%20%27Press%20%3Cb%3ECtrl%2BC%3C/b%3E%20%28or%20%3Cb%3ECmd%2BC%3C/b%3E%20on%20Mac%29%20to%20copy%20it%2C%20then%20paste%20it%20wherever%20you%20need%20it.%3C/p%3E%27%20%2B%0A%20%20%20%20%20%20%27%3Ctextarea%20id%3D%22cb-out%22%20readonly%20style%3D%22width%3A100%25%3Bheight%3A75vh%3Bfont%3A12px/1.4%20monospace%3B%27%20%2B%0A%20%20%20%20%20%20%27padding%3A10px%3Bbox-sizing%3Aborder-box%3Bbackground%3A%23111%3Bcolor%3A%230f0%3Bborder%3A1px%20solid%20%23444%3B%22%3E%3C/textarea%3E%27%3B%0A%20%20%20%20const%20ta%20%3D%20win.document.getElementById%28%27cb-out%27%29%3B%0A%20%20%20%20ta.value%20%3D%20text%3B%0A%20%20%20%20ta.focus%28%29%3B%0A%20%20%20%20ta.select%28%29%3B%0A%20%20%20%20return%20true%3B%0A%20%20%7D%0A%0A%20%20//%20Pure%20guesses%20%E2%80%94%20no%20real%20Walgreens%20coupon-card%20markup%20has%20been%20seen%20by%0A%20%20//%20this%20project.%20Common%20%22coupon%22/%22offer%22%20naming%20patterns%20are%20listed%20first.%0A%20%20const%20CANDIDATE_CARD_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22coupon-card%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22coupon-tile%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22offer-card%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22CouponCard%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22coupon-card%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22OfferCard%22%5D%27%2C%0A%20%20%20%20%27li%5Bclass%2A%3D%22coupon%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_DESC_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22coupon-description%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22offer-description%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Description%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Title%22%5D%27%2C%0A%20%20%20%20%27p%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_BRAND_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22coupon-brand%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Brand%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_EXPIRES_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22coupon-expiration%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22expires%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Expir%22%5D%27%2C%0A%20%20%5D%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-walgreens-coupons-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20setStatus%28overlay%2C%20text%29%20%7B%0A%20%20%20%20overlay.textContent%20%3D%20text%3B%0A%20%20%7D%0A%0A%20%20function%20firstMatching%28selectors%2C%20root%20%3D%20document%29%20%7B%0A%20%20%20%20for%20%28const%20sel%20of%20selectors%29%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20const%20els%20%3D%20root.querySelectorAll%28sel%29%3B%0A%20%20%20%20%20%20%20%20if%20%28els.length%20%3E%200%29%20return%20Array.from%28els%29%3B%0A%20%20%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%20%20//%20invalid%20selector%20for%20this%20browser%20%E2%80%94%20skip%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20%5B%5D%3B%0A%20%20%7D%0A%0A%20%20//%20Same%20value-pattern%20set%20proven%20out%20on%20H-E-B/Target%3A%20dollar-off%2C%0A%20%20//%20percent-off%2C%20cents-off%2C%20%22N%20for%20%24X%22%2C%20and%20%22Buy%20N%20Get%20%24X%22%20phrasings.%0A%20%20function%20extractValue%28text%29%20%7B%0A%20%20%20%20let%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Boff%28%5Cs%2B%5Cd%2B%29%3F/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20m%5B0%5D%3B%0A%20%20%20%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5Cd%2B%25%5Cs%2Boff/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20m%5B0%5D%3B%0A%20%20%20%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5Cd%2B%C2%A2%5Cs%2Boff%28%5Cs%2B%5Cd%2B%29%3F/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20m%5B0%5D%3B%0A%20%20%20%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/%5Cd%2B%5Cs%2Bfor%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20m%5B0%5D%3B%0A%20%20%20%20m%20%3D%20%28text%20%7C%7C%20%27%27%29.match%28/buy%5Cs%2B%5Cd%2B%2C%3F%5Cs%2Bget%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F/i%29%3B%0A%20%20%20%20return%20m%20%3F%20m%5B0%5D%20%3A%20%27%27%3B%0A%20%20%7D%0A%0A%20%20const%20PREFIX_STRIP_RE%20%3D%20/%5E%28%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Boff%5Cs%2B%7C%5Cd%2B%25%5Cs%2Boff%5Cs%2B%7C%5Cd%2B%C2%A2%5Cs%2Boff%5Cs%2B%7C%5Cd%2B%5Cs%2Bfor%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2B%7Cbuy%5Cs%2B%5Cd%2B%2C%3F%5Cs%2Bget%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2B%28%3F%3Aon%7Cwhen%20you%20buy%29%3F%5Cs%2A%29/i%3B%0A%0A%20%20function%20guessBrand%28description%29%20%7B%0A%20%20%20%20const%20stripped%20%3D%20description.replace%28PREFIX_STRIP_RE%2C%20%27%27%29.trim%28%29%3B%0A%20%20%20%20const%20m%20%3D%20stripped.match%28/%5E%28%5BA-Z%5D%5B%5Cw%27%26%5D%2A%28%3F%3A%5Cs%2B%5BA-Z%5D%5B%5Cw%27%26.%5D%2A%29%7B0%2C2%7D%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20m%5B1%5D%20%3A%20%27%27%3B%0A%20%20%7D%0A%0A%20%20function%20findLoadMoreControl%28%29%20%7B%0A%20%20%20%20const%20candidates%20%3D%20Array.from%28document.querySelectorAll%28%27a%2C%20button%27%29%29.filter%28%28el%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20const%20text%20%3D%20%28el.textContent%20%7C%7C%20%27%27%29.trim%28%29.toLowerCase%28%29%3B%0A%20%20%20%20%20%20return%20/load%20more%7Csee%20more%7Cshow%20more%7Cmore%20%28coupons%7Coffers%29/i.test%28text%29%3B%0A%20%20%20%20%7D%29%3B%0A%20%20%20%20return%20candidates.find%28%28el%29%20%3D%3E%20el.offsetParent%20%21%3D%3D%20null%20%26%26%20%21el.disabled%29%20%7C%7C%20null%3B%0A%20%20%7D%0A%0A%20%20function%20scrapeCards%28%29%20%7B%0A%20%20%20%20const%20cards%20%3D%20firstMatching%28CANDIDATE_CARD_SELECTORS%29%3B%0A%20%20%20%20const%20coupons%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20card%20of%20cards%29%20%7B%0A%20%20%20%20%20%20const%20descEl%20%3D%20firstMatching%28CANDIDATE_DESC_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20brandEl%20%3D%20firstMatching%28CANDIDATE_BRAND_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20expiresEl%20%3D%20firstMatching%28CANDIDATE_EXPIRES_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20linkEl%20%3D%20card.querySelector%28%27a%5Bhref%5D%27%29%3B%0A%0A%20%20%20%20%20%20const%20cardText%20%3D%20card.textContent.replace%28/%5Cs%2B/g%2C%20%27%20%27%29.trim%28%29%3B%0A%20%20%20%20%20%20const%20description%20%3D%20descEl%20%3F%20descEl.textContent.trim%28%29%20%3A%20cardText.slice%280%2C%20120%29%3B%0A%20%20%20%20%20%20const%20value%20%3D%20extractValue%28description%29%20%7C%7C%20extractValue%28cardText%29%3B%0A%20%20%20%20%20%20if%20%28%21description%20%7C%7C%20%21value%29%20continue%3B%20//%20skip%20non-coupon%20tiles%0A%0A%20%20%20%20%20%20const%20brand%20%3D%20brandEl%20%3F%20brandEl.textContent.trim%28%29%20%3A%20guessBrand%28description%29%3B%0A%20%20%20%20%20%20const%20expiresText%20%3D%20expiresEl%20%3F%20expiresEl.textContent.trim%28%29%20%3A%20%27%27%3B%0A%20%20%20%20%20%20const%20expiresMatch%20%3D%20expiresText.match%28/%28%5Cd%7B1%2C2%7D%5C/%5Cd%7B1%2C2%7D%5C/%5Cd%7B2%2C4%7D%29/%29%3B%0A%0A%20%20%20%20%20%20coupons.push%28%7B%0A%20%20%20%20%20%20%20%20id%3A%20%60%24%7Bbrand%7D-%24%7Bdescription%7D%60.replace%28/%5Cs%2B/g%2C%20%27-%27%29.toLowerCase%28%29.slice%280%2C%2060%29%2C%0A%20%20%20%20%20%20%20%20brand%2C%0A%20%20%20%20%20%20%20%20value%2C%0A%20%20%20%20%20%20%20%20description%2C%0A%20%20%20%20%20%20%20%20expires%3A%20expiresMatch%20%3F%20expiresMatch%5B1%5D%20%3A%20expiresText%2C%0A%20%20%20%20%20%20%20%20url%3A%20linkEl%20%3F%20new%20URL%28linkEl.getAttribute%28%27href%27%29%2C%20location.origin%29.href%20%3A%20location.href%2C%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20coupons%3B%0A%20%20%7D%0A%0A%20%20async%20function%20scrapeAllCards%28overlay%29%20%7B%0A%20%20%20%20const%20byId%20%3D%20new%20Map%28%29%3B%0A%20%20%20%20let%20noGrowthRounds%20%3D%200%3B%0A%0A%20%20%20%20for%20%28let%20round%20%3D%201%3B%20round%20%3C%3D%20MAX_ROUNDS%20%26%26%20noGrowthRounds%20%3C%20NO_GROWTH_ROUNDS_BEFORE_GIVING_UP%3B%20round%2B%2B%29%20%7B%0A%20%20%20%20%20%20const%20before%20%3D%20byId.size%3B%0A%20%20%20%20%20%20for%20%28const%20c%20of%20scrapeCards%28%29%29%20byId.set%28c.id%2C%20c%29%3B%0A%20%20%20%20%20%20setStatus%28overlay%2C%20%60Loading%20more%20coupons%E2%80%A6%20%24%7BbyId.size%7D%20found%20so%20far%E2%80%A6%60%29%3B%0A%0A%20%20%20%20%20%20noGrowthRounds%20%3D%20byId.size%20%3E%20before%20%3F%200%20%3A%20noGrowthRounds%20%2B%201%3B%0A%0A%20%20%20%20%20%20const%20loadMoreBtn%20%3D%20findLoadMoreControl%28%29%3B%0A%20%20%20%20%20%20if%20%28loadMoreBtn%29%20%7B%0A%20%20%20%20%20%20%20%20loadMoreBtn.click%28%29%3B%0A%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20window.scrollTo%280%2C%20document.body.scrollHeight%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20await%20sleep%28WAIT_AFTER_ACTION_MS%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20return%20Array.from%28byId.values%28%29%29%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20if%20%28%21location.hostname.endsWith%28%27walgreens.com%27%29%29%20%7B%0A%20%20%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20%20%20overlay.textContent%20%3D%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20the%20walgreens.com%20coupons%20page%2C%20not%20here.%27%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20setStatus%28overlay%2C%20%27Scanning%20for%20coupons%E2%80%A6%27%29%3B%0A%20%20const%20coupons%20%3D%20await%20scrapeAllCards%28overlay%29%3B%0A%0A%20%20if%20%28coupons.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20overlay.innerHTML%20%3D%0A%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20coupons%20found%20on%20this%20page.%20The%20CSS%20selectors%20in%20%27%20%2B%0A%20%20%20%20%20%20%27scrape-walgreens-coupons.src.js%20are%20unverified%20guesses%20%E2%80%94%20inspect%20a%20%27%20%2B%0A%20%20%20%20%20%20%27coupon%20card%20in%20DevTools%20and%20edit%20CANDIDATE_CARD_SELECTORS%20/%20%27%20%2B%0A%20%20%20%20%20%20%27CANDIDATE_DESC_SELECTORS.%27%3B%0A%20%20%20%20console.warn%28%27%5BCouponBunch%5D%200%20coupons%20found.%20Selectors%20need%20updating.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20source_url%3A%20location.href%2C%0A%20%20%20%20coupons%2C%0A%20%20%7D%3B%0A%0A%20%20const%20jsonText%20%3D%20JSON.stringify%28payload%2C%20null%2C%202%29%3B%0A%20%20window.__couponBunchWalgreensCoupons%20%3D%20jsonText%3B%0A%0A%20%20const%20openedCopyTab%20%3D%20openCopyTab%28%0A%20%20%20%20%60CouponBunch%20%E2%80%94%20%24%7Bcoupons.length%7D%20Walgreens%20coupons%20%28copy%20this%29%60%2C%0A%20%20%20%20jsonText%0A%20%20%29%3B%0A%0A%20%20try%20%7B%0A%20%20%20%20const%20blob%20%3D%20new%20Blob%28%5BjsonText%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20%20%20a.href%20%3D%20url%3B%0A%20%20%20%20a.download%20%3D%20%27walgreens-coupons-raw.json%27%3B%0A%20%20%20%20document.body.appendChild%28a%29%3B%0A%20%20%20%20a.click%28%29%3B%0A%20%20%20%20a.remove%28%29%3B%0A%20%20%20%20URL.revokeObjectURL%28url%29%3B%0A%20%20%7D%20catch%20%28e%29%20%7B%7D%0A%20%20try%20%7B%0A%20%20%20%20await%20withTimeout%28navigator.clipboard.writeText%28jsonText%29%2C%202000%29%3B%0A%20%20%7D%20catch%20%28e%29%20%7B%7D%0A%0A%20%20overlay.innerHTML%20%3D%20openedCopyTab%0A%20%20%20%20%3F%20%60%E2%9C%85%20%24%7Bcoupons.length%7D%20coupon%28s%29%20found.%20A%20new%20tab%20opened%20with%20the%20data%20%E2%80%94%20press%20Ctrl%2BC%20there%20and%20paste%20it%20wherever%20you%20need%20it.%60%0A%20%20%20%20%3A%20%60%E2%9C%85%20%24%7Bcoupons.length%7D%20coupon%28s%29%20found%2C%20but%20the%20popup%20was%20blocked.%20Allow%20popups%20for%20this%20site%20and%20try%20again%2C%20or%20check%20your%20Downloads%20folder%20/%20clipboard.%60%3B%0A%20%20console.log%28jsonText%29%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20overlay.remove%28%29%2C%2015000%29%3B%0A%7D%29%28%29%3B%0A">🏷️ Scrape Walgreens Coupons</a> ← drag this to your bookmarks bar</p>
+  <ol class="steps">
+    <li>Go to the page above, logged in.</li>
+    <li>Click the bookmark. Watch the on-page progress box.</li>
+    <li>A file downloads automatically to your Downloads folder.</li>
+    <li>Run <code>python tools/import_walgreens_coupons.py</code> and follow the prompt.</li>
+  </ol>
+  <details>
+    <summary>Bookmark won't drag, or your browser strips javascript: links? Use the console instead.</summary>
+    <p>Open DevTools (F12) on the page above, go to the Console tab, paste the script below, and press Enter.</p>
+    <pre><code>/**
+ * CouponBunch Walgreens manufacturer-coupons scraping bookmarklet — source
+ * (readable) version.
+ *
+ * UNVERIFIED: this project has no network access to walgreens.com, so none
+ * of the CANDIDATE_* selectors below have been checked against real markup.
+ * If it finds zero coupons, inspect a coupon card on the page in DevTools
+ * and update the CANDIDATE_* selector arrays, then re-run
+ * `python tools/bookmarklet/build.py`.
+ *
+ * Run this on Walgreens&#x27; coupons page:
+ *   https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons
+ * while logged in.
+ *
+ * Usage: click the bookmark — it captures the current page&#x27;s coupons
+ * (clicking a &quot;Load more&quot; button if present, or scrolling, to collect all of
+ * them) and opens a new tab with the JSON already selected in a text box (no
+ * DevTools needed). Press Ctrl+C there, then run:
+ *   python tools/import_walgreens_coupons.py --file wherever-you-saved-it.json
+ * or paste it straight to Claude in chat.
+ */
+(async () =&gt; {
+  const NO_GROWTH_ROUNDS_BEFORE_GIVING_UP = 4;
+  const MAX_ROUNDS = 60;
+  const WAIT_AFTER_ACTION_MS = 1500;
+
+  function sleep(ms) {
+    return new Promise((resolve) =&gt; setTimeout(resolve, ms));
+  }
+
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =&gt; setTimeout(() =&gt; reject(new Error(&#x27;timed out&#x27;)), ms)),
+    ]);
+  }
+
+  function openCopyTab(title, text) {
+    const win = window.open(&#x27;&#x27;, &#x27;_blank&#x27;);
+    if (!win) return false; // popup blocked
+    win.document.title = title;
+    win.document.body.style.cssText =
+      &#x27;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:20px;&#x27; +
+      &#x27;background:#1b1b1b;color:#fff;box-sizing:border-box;&#x27;;
+    win.document.body.innerHTML =
+      &#x27;&lt;p style=&quot;font-size:15px;margin:0 0 12px;&quot;&gt;✅ Done — this text is already selected. &#x27; +
+      &#x27;Press &lt;b&gt;Ctrl+C&lt;/b&gt; (or &lt;b&gt;Cmd+C&lt;/b&gt; on Mac) to copy it, then paste it wherever you need it.&lt;/p&gt;&#x27; +
+      &#x27;&lt;textarea id=&quot;cb-out&quot; readonly style=&quot;width:100%;height:75vh;font:12px/1.4 monospace;&#x27; +
+      &#x27;padding:10px;box-sizing:border-box;background:#111;color:#0f0;border:1px solid #444;&quot;&gt;&lt;/textarea&gt;&#x27;;
+    const ta = win.document.getElementById(&#x27;cb-out&#x27;);
+    ta.value = text;
+    ta.focus();
+    ta.select();
+    return true;
+  }
+
+  // Pure guesses — no real Walgreens coupon-card markup has been seen by
+  // this project. Common &quot;coupon&quot;/&quot;offer&quot; naming patterns are listed first.
+  const CANDIDATE_CARD_SELECTORS = [
+    &#x27;[data-testid=&quot;coupon-card&quot;]&#x27;,
+    &#x27;[data-testid=&quot;coupon-tile&quot;]&#x27;,
+    &#x27;[data-testid=&quot;offer-card&quot;]&#x27;,
+    &#x27;[class*=&quot;CouponCard&quot;]&#x27;,
+    &#x27;[class*=&quot;coupon-card&quot;]&#x27;,
+    &#x27;[class*=&quot;OfferCard&quot;]&#x27;,
+    &#x27;li[class*=&quot;coupon&quot;]&#x27;,
+  ];
+  const CANDIDATE_DESC_SELECTORS = [
+    &#x27;[data-testid=&quot;coupon-description&quot;]&#x27;,
+    &#x27;[data-testid=&quot;offer-description&quot;]&#x27;,
+    &#x27;[class*=&quot;Description&quot;]&#x27;,
+    &#x27;[class*=&quot;Title&quot;]&#x27;,
+    &#x27;p&#x27;,
+  ];
+  const CANDIDATE_BRAND_SELECTORS = [
+    &#x27;[data-testid=&quot;coupon-brand&quot;]&#x27;,
+    &#x27;[class*=&quot;Brand&quot;]&#x27;,
+  ];
+  const CANDIDATE_EXPIRES_SELECTORS = [
+    &#x27;[data-testid=&quot;coupon-expiration&quot;]&#x27;,
+    &#x27;[data-testid=&quot;expires&quot;]&#x27;,
+    &#x27;[class*=&quot;Expir&quot;]&#x27;,
+  ];
+
+  function makeOverlay() {
+    const el = document.createElement(&#x27;div&#x27;);
+    el.id = &#x27;coupon-bunch-walgreens-coupons-overlay&#x27;;
+    el.style.cssText = [
+      &#x27;position:fixed&#x27;, &#x27;top:16px&#x27;, &#x27;right:16px&#x27;, &#x27;z-index:999999&#x27;,
+      &#x27;background:#1b1b1b&#x27;, &#x27;color:#fff&#x27;, &#x27;font:13px/1.4 -apple-system,sans-serif&#x27;,
+      &#x27;padding:12px 16px&#x27;, &#x27;border-radius:10px&#x27;, &#x27;box-shadow:0 4px 16px rgba(0,0,0,.3)&#x27;,
+      &#x27;max-width:280px&#x27;,
+    ].join(&#x27;;&#x27;);
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function setStatus(overlay, text) {
+    overlay.textContent = text;
+  }
+
+  function firstMatching(selectors, root = document) {
+    for (const sel of selectors) {
+      try {
+        const els = root.querySelectorAll(sel);
+        if (els.length &gt; 0) return Array.from(els);
+      } catch (e) {
+        // invalid selector for this browser — skip
+      }
+    }
+    return [];
+  }
+
+  // Same value-pattern set proven out on H-E-B/Target: dollar-off,
+  // percent-off, cents-off, &quot;N for $X&quot;, and &quot;Buy N Get $X&quot; phrasings.
+  function extractValue(text) {
+    let m = (text || &#x27;&#x27;).match(/\$\d+(?:\.\d{2})?\s+off(\s+\d+)?/i);
+    if (m) return m[0];
+    m = (text || &#x27;&#x27;).match(/\d+%\s+off/i);
+    if (m) return m[0];
+    m = (text || &#x27;&#x27;).match(/\d+¢\s+off(\s+\d+)?/i);
+    if (m) return m[0];
+    m = (text || &#x27;&#x27;).match(/\d+\s+for\s+\$\d+(?:\.\d{2})?/i);
+    if (m) return m[0];
+    m = (text || &#x27;&#x27;).match(/buy\s+\d+,?\s+get\s+\$\d+(?:\.\d{2})?/i);
+    return m ? m[0] : &#x27;&#x27;;
+  }
+
+  const PREFIX_STRIP_RE = /^(\$\d+(?:\.\d{2})?\s+off\s+|\d+%\s+off\s+|\d+¢\s+off\s+|\d+\s+for\s+\$\d+(?:\.\d{2})?\s+|buy\s+\d+,?\s+get\s+\$\d+(?:\.\d{2})?\s+(?:on|when you buy)?\s*)/i;
+
+  function guessBrand(description) {
+    const stripped = description.replace(PREFIX_STRIP_RE, &#x27;&#x27;).trim();
+    const m = stripped.match(/^([A-Z][\w&#x27;&amp;]*(?:\s+[A-Z][\w&#x27;&amp;.]*){0,2})/);
+    return m ? m[1] : &#x27;&#x27;;
+  }
+
+  function findLoadMoreControl() {
+    const candidates = Array.from(document.querySelectorAll(&#x27;a, button&#x27;)).filter((el) =&gt; {
+      const text = (el.textContent || &#x27;&#x27;).trim().toLowerCase();
+      return /load more|see more|show more|more (coupons|offers)/i.test(text);
+    });
+    return candidates.find((el) =&gt; el.offsetParent !== null &amp;&amp; !el.disabled) || null;
+  }
+
+  function scrapeCards() {
+    const cards = firstMatching(CANDIDATE_CARD_SELECTORS);
+    const coupons = [];
+
+    for (const card of cards) {
+      const descEl = firstMatching(CANDIDATE_DESC_SELECTORS, card)[0];
+      const brandEl = firstMatching(CANDIDATE_BRAND_SELECTORS, card)[0];
+      const expiresEl = firstMatching(CANDIDATE_EXPIRES_SELECTORS, card)[0];
+      const linkEl = card.querySelector(&#x27;a[href]&#x27;);
+
+      const cardText = card.textContent.replace(/\s+/g, &#x27; &#x27;).trim();
+      const description = descEl ? descEl.textContent.trim() : cardText.slice(0, 120);
+      const value = extractValue(description) || extractValue(cardText);
+      if (!description || !value) continue; // skip non-coupon tiles
+
+      const brand = brandEl ? brandEl.textContent.trim() : guessBrand(description);
+      const expiresText = expiresEl ? expiresEl.textContent.trim() : &#x27;&#x27;;
+      const expiresMatch = expiresText.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+
+      coupons.push({
+        id: `${brand}-${description}`.replace(/\s+/g, &#x27;-&#x27;).toLowerCase().slice(0, 60),
+        brand,
+        value,
+        description,
+        expires: expiresMatch ? expiresMatch[1] : expiresText,
+        url: linkEl ? new URL(linkEl.getAttribute(&#x27;href&#x27;), location.origin).href : location.href,
+      });
+    }
+    return coupons;
+  }
+
+  async function scrapeAllCards(overlay) {
+    const byId = new Map();
+    let noGrowthRounds = 0;
+
+    for (let round = 1; round &lt;= MAX_ROUNDS &amp;&amp; noGrowthRounds &lt; NO_GROWTH_ROUNDS_BEFORE_GIVING_UP; round++) {
+      const before = byId.size;
+      for (const c of scrapeCards()) byId.set(c.id, c);
+      setStatus(overlay, `Loading more coupons… ${byId.size} found so far…`);
+
+      noGrowthRounds = byId.size &gt; before ? 0 : noGrowthRounds + 1;
+
+      const loadMoreBtn = findLoadMoreControl();
+      if (loadMoreBtn) {
+        loadMoreBtn.click();
+      } else {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+      await sleep(WAIT_AFTER_ACTION_MS);
+    }
+
+    return Array.from(byId.values());
+  }
+
+  // --- main ---
+  if (!location.hostname.endsWith(&#x27;walgreens.com&#x27;)) {
+    const overlay = makeOverlay();
+    overlay.textContent = &#x27;⚠️ Run this on the walgreens.com coupons page, not here.&#x27;;
+    return;
+  }
+
+  const overlay = makeOverlay();
+  setStatus(overlay, &#x27;Scanning for coupons…&#x27;);
+  const coupons = await scrapeAllCards(overlay);
+
+  if (coupons.length === 0) {
+    overlay.innerHTML =
+      &#x27;⚠️ No coupons found on this page. The CSS selectors in &#x27; +
+      &#x27;scrape-walgreens-coupons.src.js are unverified guesses — inspect a &#x27; +
+      &#x27;coupon card in DevTools and edit CANDIDATE_CARD_SELECTORS / &#x27; +
+      &#x27;CANDIDATE_DESC_SELECTORS.&#x27;;
+    console.warn(&#x27;[CouponBunch] 0 coupons found. Selectors need updating.&#x27;);
+    return;
+  }
+
+  const payload = {
+    scraped_at: new Date().toISOString(),
+    source: &#x27;bookmarklet&#x27;,
+    source_url: location.href,
+    coupons,
+  };
+
+  const jsonText = JSON.stringify(payload, null, 2);
+  window.__couponBunchWalgreensCoupons = jsonText;
+
+  const openedCopyTab = openCopyTab(
+    `CouponBunch — ${coupons.length} Walgreens coupons (copy this)`,
+    jsonText
+  );
+
+  try {
+    const blob = new Blob([jsonText], { type: &#x27;application/json&#x27; });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement(&#x27;a&#x27;);
+    a.href = url;
+    a.download = &#x27;walgreens-coupons-raw.json&#x27;;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {}
+  try {
+    await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
+  } catch (e) {}
+
+  overlay.innerHTML = openedCopyTab
+    ? `✅ ${coupons.length} coupon(s) found. A new tab opened with the data — press Ctrl+C there and paste it wherever you need it.`
+    : `✅ ${coupons.length} coupon(s) found, but the popup was blocked. Allow popups for this site and try again, or check your Downloads folder / clipboard.`;
+  console.log(jsonText);
+  setTimeout(() =&gt; overlay.remove(), 15000);
+})();
+</code></pre>
+  </details>
+</div>
+
+<div class="bookmarklet-card">
+  <h2>💵 Scrape Walgreens Cash Rewards</h2>
+  <p class="run-on">Run on: Walgreens' Cash rewards / myWalgreens offers page, while logged in</p>
+  <p><a class="drag-link" href="javascript:/%2A%2A%0A%20%2A%20CouponBunch%20Walgreens%20Cash%20rewards%20scraping%20bookmarklet%20%E2%80%94%20source%0A%20%2A%20%28readable%29%20version.%0A%20%2A%0A%20%2A%20UNVERIFIED%3A%20this%20project%20has%20no%20network%20access%20to%20walgreens.com%2C%20so%20none%0A%20%2A%20of%20the%20CANDIDATE_%2A%20selectors%20below%20have%20been%20checked%20against%20real%20markup.%0A%20%2A%20If%20it%20finds%20zero%20offers%2C%20inspect%20an%20offer%20card%20on%20the%20Walgreens%20Cash%0A%20%2A%20rewards%20page%20in%20DevTools%20and%20update%20the%20CANDIDATE_%2A%20selector%20arrays%2C%20then%0A%20%2A%20re-run%20%60python%20tools/bookmarklet/build.py%60.%0A%20%2A%0A%20%2A%20Run%20this%20on%20Walgreens%27%20Cash%20rewards%20/%20myWalgreens%20offers%20page%2C%20while%0A%20%2A%20logged%20in.%0A%20%2A%0A%20%2A%20Usage%3A%20click%20the%20bookmark%20%E2%80%94%20it%20captures%20the%20current%20page%27s%20Cash%20rewards%0A%20%2A%20offers%20%28clicking%20a%20%22Load%20more%22%20button%20if%20present%2C%20or%20scrolling%2C%20to%20collect%0A%20%2A%20all%20of%20them%29%20and%20opens%20a%20new%20tab%20with%20the%20JSON%20already%20selected%20in%20a%20text%0A%20%2A%20box%20%28no%20DevTools%20needed%29.%20Press%20Ctrl%2BC%20there%2C%20then%20run%3A%0A%20%2A%20%20%20python%20tools/import_walgreens_cashrewards.py%20--file%20wherever-you-saved-it.json%0A%20%2A%20or%20paste%20it%20straight%20to%20Claude%20in%20chat.%0A%20%2A/%0A%28async%20%28%29%20%3D%3E%20%7B%0A%20%20const%20NO_GROWTH_ROUNDS_BEFORE_GIVING_UP%20%3D%204%3B%0A%20%20const%20MAX_ROUNDS%20%3D%2060%3B%0A%20%20const%20WAIT_AFTER_ACTION_MS%20%3D%201500%3B%0A%0A%20%20function%20sleep%28ms%29%20%7B%0A%20%20%20%20return%20new%20Promise%28%28resolve%29%20%3D%3E%20setTimeout%28resolve%2C%20ms%29%29%3B%0A%20%20%7D%0A%0A%20%20function%20withTimeout%28promise%2C%20ms%29%20%7B%0A%20%20%20%20return%20Promise.race%28%5B%0A%20%20%20%20%20%20promise%2C%0A%20%20%20%20%20%20new%20Promise%28%28_%2C%20reject%29%20%3D%3E%20setTimeout%28%28%29%20%3D%3E%20reject%28new%20Error%28%27timed%20out%27%29%29%2C%20ms%29%29%2C%0A%20%20%20%20%5D%29%3B%0A%20%20%7D%0A%0A%20%20function%20openCopyTab%28title%2C%20text%29%20%7B%0A%20%20%20%20const%20win%20%3D%20window.open%28%27%27%2C%20%27_blank%27%29%3B%0A%20%20%20%20if%20%28%21win%29%20return%20false%3B%20//%20popup%20blocked%0A%20%20%20%20win.document.title%20%3D%20title%3B%0A%20%20%20%20win.document.body.style.cssText%20%3D%0A%20%20%20%20%20%20%27font-family%3A-apple-system%2CBlinkMacSystemFont%2Csans-serif%3Bmargin%3A0%3Bpadding%3A20px%3B%27%20%2B%0A%20%20%20%20%20%20%27background%3A%231b1b1b%3Bcolor%3A%23fff%3Bbox-sizing%3Aborder-box%3B%27%3B%0A%20%20%20%20win.document.body.innerHTML%20%3D%0A%20%20%20%20%20%20%27%3Cp%20style%3D%22font-size%3A15px%3Bmargin%3A0%200%2012px%3B%22%3E%E2%9C%85%20Done%20%E2%80%94%20this%20text%20is%20already%20selected.%20%27%20%2B%0A%20%20%20%20%20%20%27Press%20%3Cb%3ECtrl%2BC%3C/b%3E%20%28or%20%3Cb%3ECmd%2BC%3C/b%3E%20on%20Mac%29%20to%20copy%20it%2C%20then%20paste%20it%20wherever%20you%20need%20it.%3C/p%3E%27%20%2B%0A%20%20%20%20%20%20%27%3Ctextarea%20id%3D%22cb-out%22%20readonly%20style%3D%22width%3A100%25%3Bheight%3A75vh%3Bfont%3A12px/1.4%20monospace%3B%27%20%2B%0A%20%20%20%20%20%20%27padding%3A10px%3Bbox-sizing%3Aborder-box%3Bbackground%3A%23111%3Bcolor%3A%230f0%3Bborder%3A1px%20solid%20%23444%3B%22%3E%3C/textarea%3E%27%3B%0A%20%20%20%20const%20ta%20%3D%20win.document.getElementById%28%27cb-out%27%29%3B%0A%20%20%20%20ta.value%20%3D%20text%3B%0A%20%20%20%20ta.focus%28%29%3B%0A%20%20%20%20ta.select%28%29%3B%0A%20%20%20%20return%20true%3B%0A%20%20%7D%0A%0A%20%20//%20Pure%20guesses%20%E2%80%94%20no%20real%20Walgreens%20Cash%20rewards%20markup%20has%20been%20seen%20by%0A%20%20//%20this%20project.%20%22Walgreens%20Cash%22%20/%20%22myWalgreens%22%20/%20generic%20%22reward%22%0A%20%20//%20naming%20patterns%20are%20listed%20first.%0A%20%20const%20CANDIDATE_CARD_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22cashback-offer%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22reward-offer%22%5D%27%2C%0A%20%20%20%20%27%5Bdata-testid%3D%22offer-card%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22CashRewards%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22WagsCash%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22RewardOffer%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22OfferCard%22%5D%27%2C%0A%20%20%20%20%27li%5Bclass%2A%3D%22offer%22%5D%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_DESC_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22offer-description%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Description%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Title%22%5D%27%2C%0A%20%20%20%20%27p%27%2C%0A%20%20%5D%3B%0A%20%20const%20CANDIDATE_BRAND_SELECTORS%20%3D%20%5B%0A%20%20%20%20%27%5Bdata-testid%3D%22offer-brand%22%5D%27%2C%0A%20%20%20%20%27%5Bclass%2A%3D%22Brand%22%5D%27%2C%0A%20%20%5D%3B%0A%0A%20%20function%20makeOverlay%28%29%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20el.id%20%3D%20%27coupon-bunch-walgreens-cashrewards-overlay%27%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%27position%3Afixed%27%2C%20%27top%3A16px%27%2C%20%27right%3A16px%27%2C%20%27z-index%3A999999%27%2C%0A%20%20%20%20%20%20%27background%3A%231b1b1b%27%2C%20%27color%3A%23fff%27%2C%20%27font%3A13px/1.4%20-apple-system%2Csans-serif%27%2C%0A%20%20%20%20%20%20%27padding%3A12px%2016px%27%2C%20%27border-radius%3A10px%27%2C%20%27box-shadow%3A0%204px%2016px%20rgba%280%2C0%2C0%2C.3%29%27%2C%0A%20%20%20%20%20%20%27max-width%3A280px%27%2C%0A%20%20%20%20%5D.join%28%27%3B%27%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20return%20el%3B%0A%20%20%7D%0A%0A%20%20function%20setStatus%28overlay%2C%20text%29%20%7B%0A%20%20%20%20overlay.textContent%20%3D%20text%3B%0A%20%20%7D%0A%0A%20%20function%20firstMatching%28selectors%2C%20root%20%3D%20document%29%20%7B%0A%20%20%20%20for%20%28const%20sel%20of%20selectors%29%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20const%20els%20%3D%20root.querySelectorAll%28sel%29%3B%0A%20%20%20%20%20%20%20%20if%20%28els.length%20%3E%200%29%20return%20Array.from%28els%29%3B%0A%20%20%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%20%20//%20invalid%20selector%20for%20this%20browser%20%E2%80%94%20skip%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20%5B%5D%3B%0A%20%20%7D%0A%0A%20%20//%20Real%20phrasing%20is%20unknown%2C%20so%20both%20a%20spend-based%20%28%22Spend%20%24X%2C%20Get%20%24Y%0A%20%20//%20Walgreens%20Cash%22%29%20and%20a%20qty-based%20%28%22Buy%20N%2C%20Get%20%24Y%20Walgreens%20Cash%22%29%0A%20%20//%20pattern%20are%20checked%2C%20mirroring%20the%20two%20real%20phrasings%20Target%20actually%0A%20%20//%20turned%20out%20to%20use%20for%20its%20own%20gift-card%20promos.%0A%20%20function%20parseCashRewardOffer%28text%29%20%7B%0A%20%20%20%20if%20%28%21text%29%20return%20null%3B%0A%20%20%20%20let%20m%20%3D%20text.match%28/spend%5Cs%2B%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29%2C%3F%5Cs%2Bget%5Cs%2B%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29%5Cs%2Bwalgreens%5Cs%2Bcash/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20%7B%20type%3A%20%27spend%27%2C%20threshold%3A%20parseFloat%28m%5B1%5D%29%2C%20amount%3A%20parseFloat%28m%5B2%5D%29%20%7D%3B%0A%20%20%20%20m%20%3D%20text.match%28/buy%5Cs%2B%28%5Cd%2B%29%2C%3F%5Cs%2Bget%5Cs%2B%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29%5Cs%2Bwalgreens%5Cs%2Bcash/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20%7B%20type%3A%20%27qty%27%2C%20qty%3A%20parseInt%28m%5B1%5D%2C%2010%29%2C%20amount%3A%20parseFloat%28m%5B2%5D%29%20%7D%3B%0A%20%20%20%20m%20%3D%20text.match%28/%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29%5Cs%2Bwalgreens%5Cs%2Bcash%5Cs%2Bwith%5Cs%2B%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29%5Cs%2Bpurchase/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20%7B%20type%3A%20%27spend%27%2C%20threshold%3A%20parseFloat%28m%5B2%5D%29%2C%20amount%3A%20parseFloat%28m%5B1%5D%29%20%7D%3B%0A%20%20%20%20m%20%3D%20text.match%28/%5C%24%28%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%29%5Cs%2Bwalgreens%5Cs%2Bcash%5Cs%2Bwith%5Cs%2B%28%5Cd%2B%29%5Cs%2B%5B%5Cw%5Cs%5D%2A%3Fitems%3F/i%29%3B%0A%20%20%20%20if%20%28m%29%20return%20%7B%20type%3A%20%27qty%27%2C%20qty%3A%20parseInt%28m%5B2%5D%2C%2010%29%2C%20amount%3A%20parseFloat%28m%5B1%5D%29%20%7D%3B%0A%20%20%20%20return%20null%3B%0A%20%20%7D%0A%0A%20%20const%20PREFIX_STRIP_RE%20%3D%20/%5E%28spend%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%2C%3F%5Cs%2Bget%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Bwalgreens%5Cs%2Bcash%5Cs%2B%28%3F%3Aon%7Cwhen%20you%20buy%29%3F%5Cs%2A%7Cbuy%5Cs%2B%5Cd%2B%2C%3F%5Cs%2Bget%5Cs%2B%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Bwalgreens%5Cs%2Bcash%5Cs%2B%28%3F%3Aon%7Cwhen%20you%20buy%29%3F%5Cs%2A%7C%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%5Cs%2Bwalgreens%5Cs%2Bcash%5Cs%2Bwith%5Cs%2B%28%3F%3A%5C%24%5Cd%2B%28%3F%3A%5C.%5Cd%7B2%7D%29%3F%7C%5Cd%2B%29%5Cs%2B%5B%5Cw%5Cs%5D%2A%3F%28%3F%3Apurchase%7Citems%3F%29%5Cs%2A%29/i%3B%0A%0A%20%20function%20guessBrand%28description%29%20%7B%0A%20%20%20%20const%20stripped%20%3D%20description.replace%28PREFIX_STRIP_RE%2C%20%27%27%29.trim%28%29%3B%0A%20%20%20%20const%20m%20%3D%20stripped.match%28/%5E%28%5BA-Z%5D%5B%5Cw%27%26%5D%2A%28%3F%3A%5Cs%2B%5BA-Z%5D%5B%5Cw%27%26.%5D%2A%29%7B0%2C2%7D%29/%29%3B%0A%20%20%20%20return%20m%20%3F%20m%5B1%5D%20%3A%20%27%27%3B%0A%20%20%7D%0A%0A%20%20function%20findLoadMoreControl%28%29%20%7B%0A%20%20%20%20const%20candidates%20%3D%20Array.from%28document.querySelectorAll%28%27a%2C%20button%27%29%29.filter%28%28el%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20const%20text%20%3D%20%28el.textContent%20%7C%7C%20%27%27%29.trim%28%29.toLowerCase%28%29%3B%0A%20%20%20%20%20%20return%20/load%20more%7Csee%20more%7Cshow%20more%7Cmore%20%28offers%7Crewards%29/i.test%28text%29%3B%0A%20%20%20%20%7D%29%3B%0A%20%20%20%20return%20candidates.find%28%28el%29%20%3D%3E%20el.offsetParent%20%21%3D%3D%20null%20%26%26%20%21el.disabled%29%20%7C%7C%20null%3B%0A%20%20%7D%0A%0A%20%20function%20scrapeCards%28%29%20%7B%0A%20%20%20%20const%20cards%20%3D%20firstMatching%28CANDIDATE_CARD_SELECTORS%29%3B%0A%20%20%20%20const%20offers%20%3D%20%5B%5D%3B%0A%0A%20%20%20%20for%20%28const%20card%20of%20cards%29%20%7B%0A%20%20%20%20%20%20const%20descEl%20%3D%20firstMatching%28CANDIDATE_DESC_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20brandEl%20%3D%20firstMatching%28CANDIDATE_BRAND_SELECTORS%2C%20card%29%5B0%5D%3B%0A%20%20%20%20%20%20const%20linkEl%20%3D%20card.querySelector%28%27a%5Bhref%5D%27%29%3B%0A%0A%20%20%20%20%20%20const%20cardText%20%3D%20card.textContent.replace%28/%5Cs%2B/g%2C%20%27%20%27%29.trim%28%29%3B%0A%20%20%20%20%20%20const%20description%20%3D%20descEl%20%3F%20descEl.textContent.trim%28%29%20%3A%20cardText.slice%280%2C%20120%29%3B%0A%20%20%20%20%20%20const%20offer%20%3D%20parseCashRewardOffer%28description%29%20%7C%7C%20parseCashRewardOffer%28cardText%29%3B%0A%20%20%20%20%20%20if%20%28%21description%20%7C%7C%20%21offer%29%20continue%3B%20//%20skip%20non-cash-reward%20tiles%0A%0A%20%20%20%20%20%20const%20brand%20%3D%20brandEl%20%3F%20brandEl.textContent.trim%28%29%20%3A%20guessBrand%28description%29%3B%0A%0A%20%20%20%20%20%20offers.push%28%7B%0A%20%20%20%20%20%20%20%20id%3A%20%60%24%7Bbrand%7D-%24%7Bdescription%7D%60.replace%28/%5Cs%2B/g%2C%20%27-%27%29.toLowerCase%28%29.slice%280%2C%2060%29%2C%0A%20%20%20%20%20%20%20%20brand%2C%0A%20%20%20%20%20%20%20%20description%2C%0A%20%20%20%20%20%20%20%20amount%3A%20offer.amount%2C%0A%20%20%20%20%20%20%20%20offer_type%3A%20offer.type%2C%0A%20%20%20%20%20%20%20%20threshold%3A%20offer.threshold%20%3F%3F%20null%2C%0A%20%20%20%20%20%20%20%20qty%3A%20offer.qty%20%3F%3F%20null%2C%0A%20%20%20%20%20%20%20%20url%3A%20linkEl%20%3F%20new%20URL%28linkEl.getAttribute%28%27href%27%29%2C%20location.origin%29.href%20%3A%20location.href%2C%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20offers%3B%0A%20%20%7D%0A%0A%20%20async%20function%20scrapeAllCards%28overlay%29%20%7B%0A%20%20%20%20const%20byId%20%3D%20new%20Map%28%29%3B%0A%20%20%20%20let%20noGrowthRounds%20%3D%200%3B%0A%0A%20%20%20%20for%20%28let%20round%20%3D%201%3B%20round%20%3C%3D%20MAX_ROUNDS%20%26%26%20noGrowthRounds%20%3C%20NO_GROWTH_ROUNDS_BEFORE_GIVING_UP%3B%20round%2B%2B%29%20%7B%0A%20%20%20%20%20%20const%20before%20%3D%20byId.size%3B%0A%20%20%20%20%20%20for%20%28const%20c%20of%20scrapeCards%28%29%29%20byId.set%28c.id%2C%20c%29%3B%0A%20%20%20%20%20%20setStatus%28overlay%2C%20%60Loading%20more%20offers%E2%80%A6%20%24%7BbyId.size%7D%20found%20so%20far%E2%80%A6%60%29%3B%0A%0A%20%20%20%20%20%20noGrowthRounds%20%3D%20byId.size%20%3E%20before%20%3F%200%20%3A%20noGrowthRounds%20%2B%201%3B%0A%0A%20%20%20%20%20%20const%20loadMoreBtn%20%3D%20findLoadMoreControl%28%29%3B%0A%20%20%20%20%20%20if%20%28loadMoreBtn%29%20%7B%0A%20%20%20%20%20%20%20%20loadMoreBtn.click%28%29%3B%0A%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20window.scrollTo%280%2C%20document.body.scrollHeight%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20await%20sleep%28WAIT_AFTER_ACTION_MS%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20return%20Array.from%28byId.values%28%29%29%3B%0A%20%20%7D%0A%0A%20%20//%20---%20main%20---%0A%20%20if%20%28%21location.hostname.endsWith%28%27walgreens.com%27%29%29%20%7B%0A%20%20%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20%20%20overlay.textContent%20%3D%20%27%E2%9A%A0%EF%B8%8F%20Run%20this%20on%20the%20walgreens.com%20Cash%20rewards%20page%2C%20not%20here.%27%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20overlay%20%3D%20makeOverlay%28%29%3B%0A%20%20setStatus%28overlay%2C%20%27Scanning%20for%20Cash%20reward%20offers%E2%80%A6%27%29%3B%0A%20%20const%20offers%20%3D%20await%20scrapeAllCards%28overlay%29%3B%0A%0A%20%20if%20%28offers.length%20%3D%3D%3D%200%29%20%7B%0A%20%20%20%20overlay.innerHTML%20%3D%0A%20%20%20%20%20%20%27%E2%9A%A0%EF%B8%8F%20No%20Cash%20reward%20offers%20found%20on%20this%20page.%20The%20CSS%20selectors%20and%20%27%20%2B%0A%20%20%20%20%20%20%27phrasing%20patterns%20in%20scrape-walgreens-cashrewards.src.js%20are%20%27%20%2B%0A%20%20%20%20%20%20%27unverified%20guesses%20%E2%80%94%20inspect%20an%20offer%20card%20in%20DevTools%20and%20edit%20%27%20%2B%0A%20%20%20%20%20%20%27CANDIDATE_CARD_SELECTORS%20/%20parseCashRewardOffer%28%29.%27%3B%0A%20%20%20%20console.warn%28%27%5BCouponBunch%5D%200%20Cash%20reward%20offers%20found.%20Selectors%20need%20updating.%27%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20payload%20%3D%20%7B%0A%20%20%20%20scraped_at%3A%20new%20Date%28%29.toISOString%28%29%2C%0A%20%20%20%20source%3A%20%27bookmarklet%27%2C%0A%20%20%20%20source_url%3A%20location.href%2C%0A%20%20%20%20offers%2C%0A%20%20%7D%3B%0A%0A%20%20const%20jsonText%20%3D%20JSON.stringify%28payload%2C%20null%2C%202%29%3B%0A%20%20window.__couponBunchWalgreensCashRewards%20%3D%20jsonText%3B%0A%0A%20%20const%20openedCopyTab%20%3D%20openCopyTab%28%0A%20%20%20%20%60CouponBunch%20%E2%80%94%20%24%7Boffers.length%7D%20Walgreens%20Cash%20reward%20offers%20%28copy%20this%29%60%2C%0A%20%20%20%20jsonText%0A%20%20%29%3B%0A%0A%20%20try%20%7B%0A%20%20%20%20const%20blob%20%3D%20new%20Blob%28%5BjsonText%5D%2C%20%7B%20type%3A%20%27application/json%27%20%7D%29%3B%0A%20%20%20%20const%20url%20%3D%20URL.createObjectURL%28blob%29%3B%0A%20%20%20%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%0A%20%20%20%20a.href%20%3D%20url%3B%0A%20%20%20%20a.download%20%3D%20%27walgreens-cashrewards-raw.json%27%3B%0A%20%20%20%20document.body.appendChild%28a%29%3B%0A%20%20%20%20a.click%28%29%3B%0A%20%20%20%20a.remove%28%29%3B%0A%20%20%20%20URL.revokeObjectURL%28url%29%3B%0A%20%20%7D%20catch%20%28e%29%20%7B%7D%0A%20%20try%20%7B%0A%20%20%20%20await%20withTimeout%28navigator.clipboard.writeText%28jsonText%29%2C%202000%29%3B%0A%20%20%7D%20catch%20%28e%29%20%7B%7D%0A%0A%20%20overlay.innerHTML%20%3D%20openedCopyTab%0A%20%20%20%20%3F%20%60%E2%9C%85%20%24%7Boffers.length%7D%20offer%28s%29%20found.%20A%20new%20tab%20opened%20with%20the%20data%20%E2%80%94%20press%20Ctrl%2BC%20there%20and%20paste%20it%20wherever%20you%20need%20it.%60%0A%20%20%20%20%3A%20%60%E2%9C%85%20%24%7Boffers.length%7D%20offer%28s%29%20found%2C%20but%20the%20popup%20was%20blocked.%20Allow%20popups%20for%20this%20site%20and%20try%20again%2C%20or%20check%20your%20Downloads%20folder%20/%20clipboard.%60%3B%0A%20%20console.log%28jsonText%29%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20overlay.remove%28%29%2C%2015000%29%3B%0A%7D%29%28%29%3B%0A">💵 Scrape Walgreens Cash Rewards</a> ← drag this to your bookmarks bar</p>
+  <ol class="steps">
+    <li>Go to the page above, logged in.</li>
+    <li>Click the bookmark. Watch the on-page progress box.</li>
+    <li>A file downloads automatically to your Downloads folder.</li>
+    <li>Run <code>python tools/import_walgreens_cashrewards.py</code> and follow the prompt.</li>
+  </ol>
+  <details>
+    <summary>Bookmark won't drag, or your browser strips javascript: links? Use the console instead.</summary>
+    <p>Open DevTools (F12) on the page above, go to the Console tab, paste the script below, and press Enter.</p>
+    <pre><code>/**
+ * CouponBunch Walgreens Cash rewards scraping bookmarklet — source
+ * (readable) version.
+ *
+ * UNVERIFIED: this project has no network access to walgreens.com, so none
+ * of the CANDIDATE_* selectors below have been checked against real markup.
+ * If it finds zero offers, inspect an offer card on the Walgreens Cash
+ * rewards page in DevTools and update the CANDIDATE_* selector arrays, then
+ * re-run `python tools/bookmarklet/build.py`.
+ *
+ * Run this on Walgreens&#x27; Cash rewards / myWalgreens offers page, while
+ * logged in.
+ *
+ * Usage: click the bookmark — it captures the current page&#x27;s Cash rewards
+ * offers (clicking a &quot;Load more&quot; button if present, or scrolling, to collect
+ * all of them) and opens a new tab with the JSON already selected in a text
+ * box (no DevTools needed). Press Ctrl+C there, then run:
+ *   python tools/import_walgreens_cashrewards.py --file wherever-you-saved-it.json
+ * or paste it straight to Claude in chat.
+ */
+(async () =&gt; {
+  const NO_GROWTH_ROUNDS_BEFORE_GIVING_UP = 4;
+  const MAX_ROUNDS = 60;
+  const WAIT_AFTER_ACTION_MS = 1500;
+
+  function sleep(ms) {
+    return new Promise((resolve) =&gt; setTimeout(resolve, ms));
+  }
+
+  function withTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =&gt; setTimeout(() =&gt; reject(new Error(&#x27;timed out&#x27;)), ms)),
+    ]);
+  }
+
+  function openCopyTab(title, text) {
+    const win = window.open(&#x27;&#x27;, &#x27;_blank&#x27;);
+    if (!win) return false; // popup blocked
+    win.document.title = title;
+    win.document.body.style.cssText =
+      &#x27;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:20px;&#x27; +
+      &#x27;background:#1b1b1b;color:#fff;box-sizing:border-box;&#x27;;
+    win.document.body.innerHTML =
+      &#x27;&lt;p style=&quot;font-size:15px;margin:0 0 12px;&quot;&gt;✅ Done — this text is already selected. &#x27; +
+      &#x27;Press &lt;b&gt;Ctrl+C&lt;/b&gt; (or &lt;b&gt;Cmd+C&lt;/b&gt; on Mac) to copy it, then paste it wherever you need it.&lt;/p&gt;&#x27; +
+      &#x27;&lt;textarea id=&quot;cb-out&quot; readonly style=&quot;width:100%;height:75vh;font:12px/1.4 monospace;&#x27; +
+      &#x27;padding:10px;box-sizing:border-box;background:#111;color:#0f0;border:1px solid #444;&quot;&gt;&lt;/textarea&gt;&#x27;;
+    const ta = win.document.getElementById(&#x27;cb-out&#x27;);
+    ta.value = text;
+    ta.focus();
+    ta.select();
+    return true;
+  }
+
+  // Pure guesses — no real Walgreens Cash rewards markup has been seen by
+  // this project. &quot;Walgreens Cash&quot; / &quot;myWalgreens&quot; / generic &quot;reward&quot;
+  // naming patterns are listed first.
+  const CANDIDATE_CARD_SELECTORS = [
+    &#x27;[data-testid=&quot;cashback-offer&quot;]&#x27;,
+    &#x27;[data-testid=&quot;reward-offer&quot;]&#x27;,
+    &#x27;[data-testid=&quot;offer-card&quot;]&#x27;,
+    &#x27;[class*=&quot;CashRewards&quot;]&#x27;,
+    &#x27;[class*=&quot;WagsCash&quot;]&#x27;,
+    &#x27;[class*=&quot;RewardOffer&quot;]&#x27;,
+    &#x27;[class*=&quot;OfferCard&quot;]&#x27;,
+    &#x27;li[class*=&quot;offer&quot;]&#x27;,
+  ];
+  const CANDIDATE_DESC_SELECTORS = [
+    &#x27;[data-testid=&quot;offer-description&quot;]&#x27;,
+    &#x27;[class*=&quot;Description&quot;]&#x27;,
+    &#x27;[class*=&quot;Title&quot;]&#x27;,
+    &#x27;p&#x27;,
+  ];
+  const CANDIDATE_BRAND_SELECTORS = [
+    &#x27;[data-testid=&quot;offer-brand&quot;]&#x27;,
+    &#x27;[class*=&quot;Brand&quot;]&#x27;,
+  ];
+
+  function makeOverlay() {
+    const el = document.createElement(&#x27;div&#x27;);
+    el.id = &#x27;coupon-bunch-walgreens-cashrewards-overlay&#x27;;
+    el.style.cssText = [
+      &#x27;position:fixed&#x27;, &#x27;top:16px&#x27;, &#x27;right:16px&#x27;, &#x27;z-index:999999&#x27;,
+      &#x27;background:#1b1b1b&#x27;, &#x27;color:#fff&#x27;, &#x27;font:13px/1.4 -apple-system,sans-serif&#x27;,
+      &#x27;padding:12px 16px&#x27;, &#x27;border-radius:10px&#x27;, &#x27;box-shadow:0 4px 16px rgba(0,0,0,.3)&#x27;,
+      &#x27;max-width:280px&#x27;,
+    ].join(&#x27;;&#x27;);
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function setStatus(overlay, text) {
+    overlay.textContent = text;
+  }
+
+  function firstMatching(selectors, root = document) {
+    for (const sel of selectors) {
+      try {
+        const els = root.querySelectorAll(sel);
+        if (els.length &gt; 0) return Array.from(els);
+      } catch (e) {
+        // invalid selector for this browser — skip
+      }
+    }
+    return [];
+  }
+
+  // Real phrasing is unknown, so both a spend-based (&quot;Spend $X, Get $Y
+  // Walgreens Cash&quot;) and a qty-based (&quot;Buy N, Get $Y Walgreens Cash&quot;)
+  // pattern are checked, mirroring the two real phrasings Target actually
+  // turned out to use for its own gift-card promos.
+  function parseCashRewardOffer(text) {
+    if (!text) return null;
+    let m = text.match(/spend\s+\$(\d+(?:\.\d{2})?),?\s+get\s+\$(\d+(?:\.\d{2})?)\s+walgreens\s+cash/i);
+    if (m) return { type: &#x27;spend&#x27;, threshold: parseFloat(m[1]), amount: parseFloat(m[2]) };
+    m = text.match(/buy\s+(\d+),?\s+get\s+\$(\d+(?:\.\d{2})?)\s+walgreens\s+cash/i);
+    if (m) return { type: &#x27;qty&#x27;, qty: parseInt(m[1], 10), amount: parseFloat(m[2]) };
+    m = text.match(/\$(\d+(?:\.\d{2})?)\s+walgreens\s+cash\s+with\s+\$(\d+(?:\.\d{2})?)\s+purchase/i);
+    if (m) return { type: &#x27;spend&#x27;, threshold: parseFloat(m[2]), amount: parseFloat(m[1]) };
+    m = text.match(/\$(\d+(?:\.\d{2})?)\s+walgreens\s+cash\s+with\s+(\d+)\s+[\w\s]*?items?/i);
+    if (m) return { type: &#x27;qty&#x27;, qty: parseInt(m[2], 10), amount: parseFloat(m[1]) };
+    return null;
+  }
+
+  const PREFIX_STRIP_RE = /^(spend\s+\$\d+(?:\.\d{2})?,?\s+get\s+\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+(?:on|when you buy)?\s*|buy\s+\d+,?\s+get\s+\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+(?:on|when you buy)?\s*|\$\d+(?:\.\d{2})?\s+walgreens\s+cash\s+with\s+(?:\$\d+(?:\.\d{2})?|\d+)\s+[\w\s]*?(?:purchase|items?)\s*)/i;
+
+  function guessBrand(description) {
+    const stripped = description.replace(PREFIX_STRIP_RE, &#x27;&#x27;).trim();
+    const m = stripped.match(/^([A-Z][\w&#x27;&amp;]*(?:\s+[A-Z][\w&#x27;&amp;.]*){0,2})/);
+    return m ? m[1] : &#x27;&#x27;;
+  }
+
+  function findLoadMoreControl() {
+    const candidates = Array.from(document.querySelectorAll(&#x27;a, button&#x27;)).filter((el) =&gt; {
+      const text = (el.textContent || &#x27;&#x27;).trim().toLowerCase();
+      return /load more|see more|show more|more (offers|rewards)/i.test(text);
+    });
+    return candidates.find((el) =&gt; el.offsetParent !== null &amp;&amp; !el.disabled) || null;
+  }
+
+  function scrapeCards() {
+    const cards = firstMatching(CANDIDATE_CARD_SELECTORS);
+    const offers = [];
+
+    for (const card of cards) {
+      const descEl = firstMatching(CANDIDATE_DESC_SELECTORS, card)[0];
+      const brandEl = firstMatching(CANDIDATE_BRAND_SELECTORS, card)[0];
+      const linkEl = card.querySelector(&#x27;a[href]&#x27;);
+
+      const cardText = card.textContent.replace(/\s+/g, &#x27; &#x27;).trim();
+      const description = descEl ? descEl.textContent.trim() : cardText.slice(0, 120);
+      const offer = parseCashRewardOffer(description) || parseCashRewardOffer(cardText);
+      if (!description || !offer) continue; // skip non-cash-reward tiles
+
+      const brand = brandEl ? brandEl.textContent.trim() : guessBrand(description);
+
+      offers.push({
+        id: `${brand}-${description}`.replace(/\s+/g, &#x27;-&#x27;).toLowerCase().slice(0, 60),
+        brand,
+        description,
+        amount: offer.amount,
+        offer_type: offer.type,
+        threshold: offer.threshold ?? null,
+        qty: offer.qty ?? null,
+        url: linkEl ? new URL(linkEl.getAttribute(&#x27;href&#x27;), location.origin).href : location.href,
+      });
+    }
+    return offers;
+  }
+
+  async function scrapeAllCards(overlay) {
+    const byId = new Map();
+    let noGrowthRounds = 0;
+
+    for (let round = 1; round &lt;= MAX_ROUNDS &amp;&amp; noGrowthRounds &lt; NO_GROWTH_ROUNDS_BEFORE_GIVING_UP; round++) {
+      const before = byId.size;
+      for (const c of scrapeCards()) byId.set(c.id, c);
+      setStatus(overlay, `Loading more offers… ${byId.size} found so far…`);
+
+      noGrowthRounds = byId.size &gt; before ? 0 : noGrowthRounds + 1;
+
+      const loadMoreBtn = findLoadMoreControl();
+      if (loadMoreBtn) {
+        loadMoreBtn.click();
+      } else {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+      await sleep(WAIT_AFTER_ACTION_MS);
+    }
+
+    return Array.from(byId.values());
+  }
+
+  // --- main ---
+  if (!location.hostname.endsWith(&#x27;walgreens.com&#x27;)) {
+    const overlay = makeOverlay();
+    overlay.textContent = &#x27;⚠️ Run this on the walgreens.com Cash rewards page, not here.&#x27;;
+    return;
+  }
+
+  const overlay = makeOverlay();
+  setStatus(overlay, &#x27;Scanning for Cash reward offers…&#x27;);
+  const offers = await scrapeAllCards(overlay);
+
+  if (offers.length === 0) {
+    overlay.innerHTML =
+      &#x27;⚠️ No Cash reward offers found on this page. The CSS selectors and &#x27; +
+      &#x27;phrasing patterns in scrape-walgreens-cashrewards.src.js are &#x27; +
+      &#x27;unverified guesses — inspect an offer card in DevTools and edit &#x27; +
+      &#x27;CANDIDATE_CARD_SELECTORS / parseCashRewardOffer().&#x27;;
+    console.warn(&#x27;[CouponBunch] 0 Cash reward offers found. Selectors need updating.&#x27;);
+    return;
+  }
+
+  const payload = {
+    scraped_at: new Date().toISOString(),
+    source: &#x27;bookmarklet&#x27;,
+    source_url: location.href,
+    offers,
+  };
+
+  const jsonText = JSON.stringify(payload, null, 2);
+  window.__couponBunchWalgreensCashRewards = jsonText;
+
+  const openedCopyTab = openCopyTab(
+    `CouponBunch — ${offers.length} Walgreens Cash reward offers (copy this)`,
+    jsonText
+  );
+
+  try {
+    const blob = new Blob([jsonText], { type: &#x27;application/json&#x27; });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement(&#x27;a&#x27;);
+    a.href = url;
+    a.download = &#x27;walgreens-cashrewards-raw.json&#x27;;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {}
+  try {
+    await withTimeout(navigator.clipboard.writeText(jsonText), 2000);
+  } catch (e) {}
+
+  overlay.innerHTML = openedCopyTab
+    ? `✅ ${offers.length} offer(s) found. A new tab opened with the data — press Ctrl+C there and paste it wherever you need it.`
+    : `✅ ${offers.length} offer(s) found, but the popup was blocked. Allow popups for this site and try again, or check your Downloads folder / clipboard.`;
+  console.log(jsonText);
+  setTimeout(() =&gt; overlay.remove(), 15000);
+})();
+</code></pre>
+  </details>
+</div>
+
 
 <p style="color:#6b6b6b; font-size:0.85rem; margin-top:32px;">
   Regenerate this page with <code>python tools/bookmarklet/build.py</code> after editing

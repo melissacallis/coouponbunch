@@ -1,0 +1,78 @@
+:root {
+  --wag-red: #e31837;
+  --wag-blue: #0057a6;
+  --wag-dark: #1b1b1b;
+  --bg: #f7f6f3;
+  --card-bg: #ffffff;
+  --border: #e3e1db;
+  --muted: #6b6b6b;
+  --coupon: #0d6efd;
+  --cashback: #2e7d32;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--wag-dark);
+}
+header {
+  background: var(--wag-red);
+  color: white;
+  padding: 20px 24px;
+}
+header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+header p { margin: 0; font-size: 0.85rem; opacity: 0.9; }
+header a.back-link { color: white; text-decoration: underline; font-size: 0.8rem; }
+main { max-width: 900px; margin: 0 auto; padding: 24px 16px 64px; }
+
+.w-hero {
+  background: linear-gradient(135deg, var(--wag-red), var(--wag-blue));
+  color: white;
+  border-radius: 16px;
+  padding: 28px 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.w-hero .w-hero-amount { font-size: 2.4rem; font-weight: 800; margin: 6px 0; }
+.w-hero .w-hero-sub { font-size: 0.9rem; opacity: 0.92; margin: 0; }
+
+.w-count { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
+
+#w-stack-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.w-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.w-card-img { width: 100%; height: 140px; object-fit: contain; background: #fafafa; }
+.w-card-body { padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.w-card-name { font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
+.w-card-price { font-size: 1rem; font-weight: 700; color: var(--wag-red); }
+.w-card-regular { font-size: 0.8rem; font-weight: 500; color: var(--muted); text-decoration: line-through; margin-left: 6px; }
+.w-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: white;
+  width: fit-content;
+}
+.w-badge-weeklyad { background: var(--wag-blue); }
+.w-badge-coupon { background: var(--coupon); }
+.w-badge-cashback { background: var(--cashback); }
+.w-note { font-size: 0.72rem; color: var(--muted); }
+.w-savings { font-weight: 800; color: #2e7d32; font-size: 1rem; margin-top: 4px; }
+.w-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+.w-links a { font-size: 0.78rem; color: var(--wag-red); text-decoration: none; font-weight: 600; }
+
+.empty-state { color: var(--muted); font-size: 0.9rem; padding: 30px; text-align: center; grid-column: 1 / -1; }
+footer.updated { text-align: center; color: var(--muted); font-size: 0.78rem; margin-top: 32px; }
+
+@media (max-width: 500px) {
+  .w-hero .w-hero-amount { font-size: 1.9rem; }
+}
