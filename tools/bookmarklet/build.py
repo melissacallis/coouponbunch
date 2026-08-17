@@ -47,6 +47,27 @@ BOOKMARKLETS = [
         "run_on": "Target's Circle offers / coupons page, while logged in",
         "then": "python tools/import_target_coupons.py",
     },
+    {
+        "id": "walgreens-weeklyad",
+        "title": "📰 Scrape Walgreens Weekly Ad",
+        "src_file": "scrape-walgreens-weeklyad.src.js",
+        "run_on": "Walgreens' Weekly Ad page, while logged in with your store selected",
+        "then": "python tools/import_walgreens_weeklyad.py",
+    },
+    {
+        "id": "walgreens-coupons",
+        "title": "🏷️ Scrape Walgreens Coupons",
+        "src_file": "scrape-walgreens-coupons.src.js",
+        "run_on": "Walgreens' coupons page (walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons), while logged in",
+        "then": "python tools/import_walgreens_coupons.py",
+    },
+    {
+        "id": "walgreens-cashrewards",
+        "title": "💵 Scrape Walgreens Cash Rewards",
+        "src_file": "scrape-walgreens-cashrewards.src.js",
+        "run_on": "Walgreens' Cash rewards / myWalgreens offers page, while logged in",
+        "then": "python tools/import_walgreens_cashrewards.py",
+    },
 ]
 
 PAGE_TEMPLATE = """<!DOCTYPE html>
