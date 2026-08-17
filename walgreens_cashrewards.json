@@ -1,6 +1,67 @@
 {
-  "updated_at": null,
-  "source_url": null,
-  "source": "none",
-  "offers": []
+  "updated_at": "2026-08-17T00:44:31.621520+00:00",
+  "source_url": "https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons",
+  "source": "bookmarklet",
+  "offers": [
+    {
+      "id": "w0",
+      "brand": "myW exclusive",
+      "description": "Online only offer valid on each qualifyi...",
+      "amount": 10,
+      "offer_type": "earn",
+      "threshold": null,
+      "qty": null,
+      "url": "https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons"
+    },
+    {
+      "id": "w1",
+      "brand": "myW exclusive",
+      "description": "Multi use offer valid online only",
+      "amount": 5,
+      "offer_type": "earn",
+      "threshold": null,
+      "qty": null,
+      "url": "https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons"
+    },
+    {
+      "id": "w2",
+      "brand": "myW exclusive",
+      "description": "Multi use offer valid online only",
+      "amount": 4,
+      "offer_type": "earn",
+      "threshold": null,
+      "qty": null,
+      "url": "https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons"
+    },
+    {
+      "id": "w3",
+      "brand": "myW exclusive",
+      "description": "Multi-use offer valid online only",
+      "amount": 10,
+      "offer_type": "earn",
+      "threshold": null,
+      "qty": null,
+      "url": "https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons"
+    },
+    {
+      "id": "w4",
+      "brand": "myW exclusive",
+      "description": "Multi-use offer valid online only",
+      "amount": 15,
+      "offer_type": "earn",
+      "threshold": null,
+      "qty": null,
+      "url": "https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons"
+    },
+    {
+      "id": "w5",
+      "brand": "myW exclusive",
+      "description": "Multi use offer valid online only",
+      "amount": 5,
+      "offer_type": "earn",
+      "threshold": null,
+      "qty": null,
+      "url": "https://www.walgreens.com/offers/offers.jsp?ban=dl_dlsp_MegaMenu_Coupons"
+    }
+  ]
 }
