@@ -174,9 +174,29 @@
     return extractPrice(priceEl.textContent.replace(/\s+/g, ' ').trim());
   }
 
+  // Strips a leading pack-size/quantity phrase ("12-Pack ", "24-Pack ",
+  // "Value Pack ") before guessing the brand from what's left — otherwise
+  // "12-Pack Pepsi Products" would guess "12-Pack" as the brand instead of
+  // "Pepsi" (confirmed against real Weekly Ad data). Also strips trailing
+  // punctuation from the guessed word (e.g. "Downy," -> "Downy") so it
+  // doesn't silently break prefix-based brand matching against a clean
+  // coupon brand string.
   function guessBrand(name) {
     if (!name) return '';
-    return name.split(/\s+/).slice(0, 1).join(' ');
+    const stripped = name.replace(/^(\d+[\s-]?pack|value\s+pack)\s+/i, '');
+    const words = stripped.split(/\s+/);
+    const firstWord = (words[0] || '').replace(/[,;:]+$/, '');
+    // "Walgreens" alone is too generic to use as a brand — it's the
+    // store's own name, prefixed onto dozens of unrelated private-label
+    // lines (Certainty, TRUE METRIX, pregnancy tests, blood pressure
+    // monitors...). Confirmed as a real bug against live data: it falsely
+    // matched a "$2 off Walgreens Pregnancy Tests" coupon onto a blood
+    // pressure monitor and 8 other unrelated items. Taking more words
+    // requires real specificity before it's allowed to match anything.
+    if (/^walgreens$/i.test(firstWord)) {
+      return words.slice(0, 3).join(' ').replace(/[,;:]+$/, '');
+    }
+    return firstWord;
   }
 
   const IN_STORE_REWARD_RE = /Earn\s+\$(\d+(?:\.\d{2})?)\s+In-?store\s+rewards?/i;
